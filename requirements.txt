@@ -1,0 +1,26 @@
+fastapi
+uvicorn[standard]
+
+sqlalchemy[asyncio]
+psycopg[binary]
+
+alembic
+
+pydantic-settings
+email-validator
+
+# Auth
+pyjwt
+bcrypt
+
+# File uploads / object storage
+python-multipart
+boto3
+
+# Tests
+pytest
+pytest-asyncio
+httpx
+
+# Dev tooling
+Faker
