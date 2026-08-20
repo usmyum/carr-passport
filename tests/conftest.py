@@ -27,10 +27,9 @@ from app.db.base import Base
 from app.db.database import get_db
 from app.main import app
 
-
 TEST_DATABASE_URL = (
-    settings.test_database_url
-    or settings.database_url + "_test"
+        settings.test_database_url
+        or settings.database_url + "_test"
 )
 
 
@@ -41,7 +40,6 @@ def anyio_backend() -> str:
 
 @pytest.fixture
 async def engine() -> AsyncGenerator:
-
     engine = create_async_engine(
         TEST_DATABASE_URL,
         echo=False,
@@ -59,7 +57,6 @@ async def engine() -> AsyncGenerator:
 
 @pytest.fixture
 async def db(engine) -> AsyncGenerator[AsyncSession, None]:
-
     session_factory = async_sessionmaker(
         bind=engine,
         class_=AsyncSession,
@@ -80,8 +77,8 @@ async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test",
+            transport=ASGITransport(app=app),
+            base_url="http://test",
     ) as http_client:
         yield http_client
 
@@ -102,10 +99,9 @@ async def make(client: AsyncClient) -> dict:
 
 @pytest.fixture
 async def vehicle_model(
-    client: AsyncClient,
-    make: dict,
+        client: AsyncClient,
+        make: dict,
 ) -> dict:
-
     response = await client.post(
         f"/api/v1/models/make/{make['id']}",
         json={"name": "Corolla"},
@@ -116,7 +112,6 @@ async def vehicle_model(
 
 @pytest.fixture
 async def garage(client: AsyncClient) -> dict:
-
     response = await client.post(
         "/api/v1/garages",
         json={"name": "Joe's Auto Shop"},
@@ -147,9 +142,9 @@ def auth_headers(user: dict) -> dict:
 
 @pytest.fixture
 async def vehicle(
-    client: AsyncClient,
-    vehicle_model: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
+        auth_headers: dict,
 ) -> dict:
     """A vehicle owned by the `user` fixture."""
 
@@ -167,11 +162,10 @@ async def vehicle(
 
 @pytest.fixture
 async def service_record(
-    client: AsyncClient,
-    vehicle: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle: dict,
+        auth_headers: dict,
 ) -> dict:
-
     response = await client.post(
         f"/api/v1/service-records/vehicle/{vehicle['id']}",
         json={

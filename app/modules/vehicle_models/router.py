@@ -11,6 +11,7 @@ from app.modules.vehicle_models.schemas import (
 )
 from app.modules.vehicle_models.service import VehicleModelService
 
+
 router = APIRouter(
     prefix="/models",
     tags=["Vehicle Models"],
@@ -18,8 +19,9 @@ router = APIRouter(
 
 
 def get_vehicle_model_service(
-        db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> VehicleModelService:
+
     return VehicleModelService(
         repository=VehicleModelRepository(db),
         make_repository=MakeRepository(db),
@@ -33,11 +35,11 @@ def get_vehicle_model_service(
     summary="Create a model under a make",
 )
 async def create_model(
-        make_id: int,
-        data: VehicleModelCreate,
-        service: VehicleModelService = Depends(
-            get_vehicle_model_service
-        ),
+    make_id: int,
+    data: VehicleModelCreate,
+    service: VehicleModelService = Depends(
+        get_vehicle_model_service
+    ),
 ):
     return await service.create(make_id, data)
 
@@ -48,13 +50,13 @@ async def create_model(
     summary="List models, optionally filtered by make",
 )
 async def get_models(
-        make_id: int | None = Query(
-            default=None,
-            description="Only return models belonging to this make",
-        ),
-        service: VehicleModelService = Depends(
-            get_vehicle_model_service
-        ),
+    make_id: int | None = Query(
+        default=None,
+        description="Only return models belonging to this make",
+    ),
+    service: VehicleModelService = Depends(
+        get_vehicle_model_service
+    ),
 ):
     return await service.get_all(make_id)
 
@@ -65,10 +67,10 @@ async def get_models(
     summary="Get a model",
 )
 async def get_model(
-        model_id: int,
-        service: VehicleModelService = Depends(
-            get_vehicle_model_service
-        ),
+    model_id: int,
+    service: VehicleModelService = Depends(
+        get_vehicle_model_service
+    ),
 ):
     return await service.get(model_id)
 
@@ -79,11 +81,11 @@ async def get_model(
     summary="Update a model",
 )
 async def update_model(
-        model_id: int,
-        data: VehicleModelUpdate,
-        service: VehicleModelService = Depends(
-            get_vehicle_model_service
-        ),
+    model_id: int,
+    data: VehicleModelUpdate,
+    service: VehicleModelService = Depends(
+        get_vehicle_model_service
+    ),
 ):
     return await service.update(model_id, data)
 
@@ -94,9 +96,9 @@ async def update_model(
     summary="Delete a model",
 )
 async def delete_model(
-        model_id: int,
-        service: VehicleModelService = Depends(
-            get_vehicle_model_service
-        ),
+    model_id: int,
+    service: VehicleModelService = Depends(
+        get_vehicle_model_service
+    ),
 ):
     await service.delete(model_id)

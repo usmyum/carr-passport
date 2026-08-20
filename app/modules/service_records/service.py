@@ -13,20 +13,20 @@ from app.shared.pagination import PageParams
 class ServiceRecordService:
 
     def __init__(
-            self,
-            repository: ServiceRecordRepository,
-            vehicle_repository: VehicleRepository,
-            garage_repository: GarageRepository,
+        self,
+        repository: ServiceRecordRepository,
+        vehicle_repository: VehicleRepository,
+        garage_repository: GarageRepository,
     ):
         self.repository = repository
         self.vehicle_repository = vehicle_repository
         self.garage_repository = garage_repository
 
     async def create(
-            self,
-            vehicle_id: int,
-            data: ServiceRecordCreate,
-            owner_id: int,
+        self,
+        vehicle_id: int,
+        data: ServiceRecordCreate,
+        owner_id: int,
     ) -> ServiceRecord:
 
         await self._ensure_vehicle_is_owned(vehicle_id, owner_id)
@@ -56,10 +56,10 @@ class ServiceRecordService:
         return record
 
     async def paginate_for_vehicle(
-            self,
-            vehicle_id: int,
-            params: PageParams,
-            owner_id: int,
+        self,
+        vehicle_id: int,
+        params: PageParams,
+        owner_id: int,
     ) -> tuple[list[ServiceRecord], int]:
 
         await self._ensure_vehicle_is_owned(vehicle_id, owner_id)
@@ -70,10 +70,10 @@ class ServiceRecordService:
         )
 
     async def update(
-            self,
-            record_id: int,
-            data: ServiceRecordUpdate,
-            owner_id: int,
+        self,
+        record_id: int,
+        data: ServiceRecordUpdate,
+        owner_id: int,
     ) -> ServiceRecord:
 
         record = await self.get(record_id, owner_id)
@@ -95,9 +95,9 @@ class ServiceRecordService:
         await self.repository.delete(record)
 
     async def _ensure_vehicle_is_owned(
-            self,
-            vehicle_id: int,
-            owner_id: int,
+        self,
+        vehicle_id: int,
+        owner_id: int,
     ) -> None:
 
         vehicle = await self.vehicle_repository.get_by_id(vehicle_id)

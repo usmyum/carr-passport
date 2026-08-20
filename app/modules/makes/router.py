@@ -10,6 +10,7 @@ from app.modules.makes.schemas import (
 )
 from app.modules.makes.service import MakeService
 
+
 router = APIRouter(
     prefix="/makes",
     tags=["Makes"],
@@ -17,8 +18,9 @@ router = APIRouter(
 
 
 def get_make_service(
-        db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> MakeService:
+
     return MakeService(
         MakeRepository(db)
     )
@@ -31,8 +33,8 @@ def get_make_service(
     summary="Create a make",
 )
 async def create_make(
-        data: MakeCreate,
-        service: MakeService = Depends(get_make_service),
+    data: MakeCreate,
+    service: MakeService = Depends(get_make_service),
 ):
     return await service.create(data)
 
@@ -43,7 +45,7 @@ async def create_make(
     summary="List all makes",
 )
 async def get_makes(
-        service: MakeService = Depends(get_make_service),
+    service: MakeService = Depends(get_make_service),
 ):
     return await service.get_all()
 
@@ -54,8 +56,8 @@ async def get_makes(
     summary="Get a make",
 )
 async def get_make(
-        make_id: int,
-        service: MakeService = Depends(get_make_service),
+    make_id: int,
+    service: MakeService = Depends(get_make_service),
 ):
     return await service.get(make_id)
 
@@ -66,9 +68,9 @@ async def get_make(
     summary="Update a make",
 )
 async def update_make(
-        make_id: int,
-        data: MakeUpdate,
-        service: MakeService = Depends(get_make_service),
+    make_id: int,
+    data: MakeUpdate,
+    service: MakeService = Depends(get_make_service),
 ):
     return await service.update(make_id, data)
 
@@ -79,7 +81,7 @@ async def update_make(
     summary="Delete a make",
 )
 async def delete_make(
-        make_id: int,
-        service: MakeService = Depends(get_make_service),
+    make_id: int,
+    service: MakeService = Depends(get_make_service),
 ):
     await service.delete(make_id)

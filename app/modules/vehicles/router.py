@@ -13,6 +13,7 @@ from app.modules.vehicles.schemas import (
 from app.modules.vehicles.service import VehicleService
 from app.shared.pagination import Page, PageParams, get_page_params
 
+
 router = APIRouter(
     prefix="/vehicles",
     tags=["Vehicles"],
@@ -20,8 +21,9 @@ router = APIRouter(
 
 
 def get_vehicle_service(
-        db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> VehicleService:
+
     return VehicleService(
         repository=VehicleRepository(db),
         model_repository=VehicleModelRepository(db),
@@ -35,9 +37,9 @@ def get_vehicle_service(
     summary="Register a vehicle",
 )
 async def create_vehicle(
-        data: VehicleCreate,
-        current_user: CurrentUser,
-        service: VehicleService = Depends(get_vehicle_service),
+    data: VehicleCreate,
+    current_user: CurrentUser,
+    service: VehicleService = Depends(get_vehicle_service),
 ):
     return await service.create(data, owner_id=current_user.id)
 
@@ -48,10 +50,11 @@ async def create_vehicle(
     summary="List your vehicles",
 )
 async def get_vehicles(
-        current_user: CurrentUser,
-        params: PageParams = Depends(get_page_params),
-        service: VehicleService = Depends(get_vehicle_service),
+    current_user: CurrentUser,
+    params: PageParams = Depends(get_page_params),
+    service: VehicleService = Depends(get_vehicle_service),
 ):
+
     items, total = await service.paginate(
         params,
         owner_id=current_user.id,
@@ -73,9 +76,9 @@ async def get_vehicles(
     summary="Get a vehicle",
 )
 async def get_vehicle(
-        vehicle_id: int,
-        current_user: CurrentUser,
-        service: VehicleService = Depends(get_vehicle_service),
+    vehicle_id: int,
+    current_user: CurrentUser,
+    service: VehicleService = Depends(get_vehicle_service),
 ):
     return await service.get(vehicle_id, owner_id=current_user.id)
 
@@ -86,10 +89,10 @@ async def get_vehicle(
     summary="Update a vehicle",
 )
 async def update_vehicle(
-        vehicle_id: int,
-        data: VehicleUpdate,
-        current_user: CurrentUser,
-        service: VehicleService = Depends(get_vehicle_service),
+    vehicle_id: int,
+    data: VehicleUpdate,
+    current_user: CurrentUser,
+    service: VehicleService = Depends(get_vehicle_service),
 ):
     return await service.update(
         vehicle_id,
@@ -104,8 +107,8 @@ async def update_vehicle(
     summary="Delete a vehicle",
 )
 async def delete_vehicle(
-        vehicle_id: int,
-        current_user: CurrentUser,
-        service: VehicleService = Depends(get_vehicle_service),
+    vehicle_id: int,
+    current_user: CurrentUser,
+    service: VehicleService = Depends(get_vehicle_service),
 ):
     await service.delete(vehicle_id, owner_id=current_user.id)

@@ -10,6 +10,7 @@ from app.modules.garages.schemas import (
 )
 from app.modules.garages.service import GarageService
 
+
 router = APIRouter(
     prefix="/garages",
     tags=["Garages"],
@@ -17,8 +18,9 @@ router = APIRouter(
 
 
 def get_garage_service(
-        db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> GarageService:
+
     return GarageService(
         GarageRepository(db)
     )
@@ -31,8 +33,8 @@ def get_garage_service(
     summary="Add a garage",
 )
 async def create_garage(
-        data: GarageCreate,
-        service: GarageService = Depends(get_garage_service),
+    data: GarageCreate,
+    service: GarageService = Depends(get_garage_service),
 ):
     return await service.create(data)
 
@@ -43,7 +45,7 @@ async def create_garage(
     summary="List all garages",
 )
 async def get_garages(
-        service: GarageService = Depends(get_garage_service),
+    service: GarageService = Depends(get_garage_service),
 ):
     return await service.get_all()
 
@@ -54,8 +56,8 @@ async def get_garages(
     summary="Get a garage",
 )
 async def get_garage(
-        garage_id: int,
-        service: GarageService = Depends(get_garage_service),
+    garage_id: int,
+    service: GarageService = Depends(get_garage_service),
 ):
     return await service.get(garage_id)
 
@@ -66,9 +68,9 @@ async def get_garage(
     summary="Update a garage",
 )
 async def update_garage(
-        garage_id: int,
-        data: GarageUpdate,
-        service: GarageService = Depends(get_garage_service),
+    garage_id: int,
+    data: GarageUpdate,
+    service: GarageService = Depends(get_garage_service),
 ):
     return await service.update(garage_id, data)
 
@@ -79,7 +81,7 @@ async def update_garage(
     summary="Delete a garage",
 )
 async def delete_garage(
-        garage_id: int,
-        service: GarageService = Depends(get_garage_service),
+    garage_id: int,
+    service: GarageService = Depends(get_garage_service),
 ):
     await service.delete(garage_id)

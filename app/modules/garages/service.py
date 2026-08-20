@@ -40,9 +40,9 @@ class GarageService:
         return await self.repository.get_all()
 
     async def update(
-            self,
-            garage_id: int,
-            data: GarageUpdate,
+        self,
+        garage_id: int,
+        data: GarageUpdate,
     ) -> Garage:
 
         garage = await self.get(garage_id)
@@ -70,9 +70,9 @@ class GarageService:
         await self.repository.delete(garage)
 
     async def _ensure_name_is_free(
-            self,
-            name: str,
-            exclude_id: int | None = None,
+        self,
+        name: str,
+        exclude_id: int | None = None,
     ) -> None:
 
         existing = await self.repository.get_by_name(name)

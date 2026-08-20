@@ -9,17 +9,17 @@ from app.shared.pagination import PageParams
 class VehicleService:
 
     def __init__(
-            self,
-            repository: VehicleRepository,
-            model_repository: VehicleModelRepository,
+        self,
+        repository: VehicleRepository,
+        model_repository: VehicleModelRepository,
     ):
         self.repository = repository
         self.model_repository = model_repository
 
     async def create(
-            self,
-            data: VehicleCreate,
-            owner_id: int,
+        self,
+        data: VehicleCreate,
+        owner_id: int,
     ) -> Vehicle:
 
         await self._ensure_model_exists(data.model_id)
@@ -46,9 +46,9 @@ class VehicleService:
         return vehicle
 
     async def paginate(
-            self,
-            params: PageParams,
-            owner_id: int,
+        self,
+        params: PageParams,
+        owner_id: int,
     ) -> tuple[list[Vehicle], int]:
 
         return await self.repository.paginate(
@@ -57,10 +57,10 @@ class VehicleService:
         )
 
     async def update(
-            self,
-            vehicle_id: int,
-            data: VehicleUpdate,
-            owner_id: int,
+        self,
+        vehicle_id: int,
+        data: VehicleUpdate,
+        owner_id: int,
     ) -> Vehicle:
 
         vehicle = await self.get(vehicle_id, owner_id)
@@ -93,9 +93,9 @@ class VehicleService:
             raise NotFoundException("Vehicle model not found")
 
     async def _ensure_vin_is_free(
-            self,
-            vin: str,
-            exclude_id: int | None = None,
+        self,
+        vin: str,
+        exclude_id: int | None = None,
     ) -> None:
         """The unique index is the real guarantee — this just makes the
         common case a clear 409 instead of an integrity error."""

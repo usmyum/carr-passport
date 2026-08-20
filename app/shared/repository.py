@@ -17,6 +17,7 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.base import Base
 
+
 ModelType = TypeVar("ModelType", bound=Base)
 
 
@@ -29,8 +30,8 @@ class BaseRepository(Generic[ModelType]):
         self.db = db
 
     async def create(
-            self,
-            entity: ModelType,
+        self,
+        entity: ModelType,
     ) -> ModelType:
 
         self.db.add(entity)
@@ -41,8 +42,8 @@ class BaseRepository(Generic[ModelType]):
         return entity
 
     async def save(
-            self,
-            entity: ModelType,
+        self,
+        entity: ModelType,
     ) -> ModelType:
         """Persist in-memory changes made to an already-loaded entity."""
 
@@ -52,8 +53,8 @@ class BaseRepository(Generic[ModelType]):
         return entity
 
     async def get_by_id(
-            self,
-            entity_id: Any,
+        self,
+        entity_id: Any,
     ) -> ModelType | None:
 
         return await self.db.get(
@@ -62,11 +63,11 @@ class BaseRepository(Generic[ModelType]):
         )
 
     async def list(
-            self,
-            *filters: ColumnElement[bool],
-            order_by: Any = None,
-            limit: int | None = None,
-            offset: int | None = None,
+        self,
+        *filters: ColumnElement[bool],
+        order_by: Any = None,
+        limit: int | None = None,
+        offset: int | None = None,
     ) -> list[ModelType]:
 
         query = select(self.model)
@@ -88,8 +89,8 @@ class BaseRepository(Generic[ModelType]):
         return list(result.scalars().all())
 
     async def count(
-            self,
-            *filters: ColumnElement[bool],
+        self,
+        *filters: ColumnElement[bool],
     ) -> int:
 
         query = select(func.count()).select_from(self.model)
@@ -102,15 +103,15 @@ class BaseRepository(Generic[ModelType]):
         return result.scalar_one()
 
     async def exists(
-            self,
-            *filters: ColumnElement[bool],
+        self,
+        *filters: ColumnElement[bool],
     ) -> bool:
 
         return await self.count(*filters) > 0
 
     async def find_one(
-            self,
-            *filters: ColumnElement[bool],
+        self,
+        *filters: ColumnElement[bool],
     ) -> ModelType | None:
 
         result = await self.db.execute(
@@ -120,16 +121,16 @@ class BaseRepository(Generic[ModelType]):
         return result.scalar_one_or_none()
 
     async def delete(
-            self,
-            entity: ModelType,
+        self,
+        entity: ModelType,
     ) -> None:
 
         await self.db.delete(entity)
         await self.db.commit()
 
     async def delete_many(
-            self,
-            entities: Sequence[ModelType],
+        self,
+        entities: Sequence[ModelType],
     ) -> None:
 
         for entity in entities:

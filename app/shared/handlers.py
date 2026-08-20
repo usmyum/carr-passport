@@ -12,15 +12,17 @@ from fastapi.responses import JSONResponse
 
 from app.shared.exceptions import AppException
 
+
 logger = logging.getLogger(__name__)
 
 
 def error_response(
-        status_code: int,
-        error_code: str,
-        detail: str,
-        errors: list | None = None,
+    status_code: int,
+    error_code: str,
+    detail: str,
+    errors: list | None = None,
 ) -> JSONResponse:
+
     payload: dict = {
         "error": {
             "code": error_code,
@@ -38,11 +40,13 @@ def error_response(
 
 
 def register_exception_handlers(app: FastAPI) -> None:
+
     @app.exception_handler(AppException)
     async def handle_app_exception(
-            request: Request,
-            exc: AppException,
+        request: Request,
+        exc: AppException,
     ) -> JSONResponse:
+
         return error_response(
             status_code=exc.status_code,
             error_code=exc.error_code,
@@ -51,9 +55,10 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def handle_request_validation_error(
-            request: Request,
-            exc: RequestValidationError,
+        request: Request,
+        exc: RequestValidationError,
     ) -> JSONResponse:
+
         return error_response(
             status_code=422,
             error_code="validation_error",
@@ -71,9 +76,10 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def handle_unexpected_error(
-            request: Request,
-            exc: Exception,
+        request: Request,
+        exc: Exception,
     ) -> JSONResponse:
+
         logger.exception(
             "Unhandled error on %s %s",
             request.method,

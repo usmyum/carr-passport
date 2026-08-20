@@ -2,10 +2,9 @@ from httpx import AsyncClient
 
 
 async def test_create_model_under_make(
-    client: AsyncClient,
-    make: dict,
+        client: AsyncClient,
+        make: dict,
 ):
-
     response = await client.post(
         f"/api/v1/models/make/{make['id']}",
         json={"name": "Corolla"},
@@ -21,9 +20,8 @@ async def test_create_model_under_make(
 
 
 async def test_create_model_under_missing_make_returns_404(
-    client: AsyncClient,
+        client: AsyncClient,
 ):
-
     response = await client.post(
         "/api/v1/models/make/9999",
         json={"name": "Corolla"},
@@ -33,10 +31,9 @@ async def test_create_model_under_missing_make_returns_404(
 
 
 async def test_same_name_under_different_makes_is_allowed(
-    client: AsyncClient,
-    make: dict,
+        client: AsyncClient,
+        make: dict,
 ):
-
     other = await client.post(
         "/api/v1/makes",
         json={"name": "Honda"},
@@ -56,11 +53,10 @@ async def test_same_name_under_different_makes_is_allowed(
 
 
 async def test_duplicate_model_under_same_make_conflicts(
-    client: AsyncClient,
-    make: dict,
-    vehicle_model: dict,
+        client: AsyncClient,
+        make: dict,
+        vehicle_model: dict,
 ):
-
     response = await client.post(
         f"/api/v1/models/make/{make['id']}",
         json={"name": "Corolla"},
@@ -70,11 +66,10 @@ async def test_duplicate_model_under_same_make_conflicts(
 
 
 async def test_filter_models_by_make(
-    client: AsyncClient,
-    make: dict,
-    vehicle_model: dict,
+        client: AsyncClient,
+        make: dict,
+        vehicle_model: dict,
 ):
-
     response = await client.get(
         "/api/v1/models",
         params={"make_id": make["id"]},
@@ -85,10 +80,9 @@ async def test_filter_models_by_make(
 
 
 async def test_update_model(
-    client: AsyncClient,
-    vehicle_model: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
 ):
-
     response = await client.put(
         f"/api/v1/models/{vehicle_model['id']}",
         json={"name": "Camry"},
@@ -99,10 +93,9 @@ async def test_update_model(
 
 
 async def test_delete_model(
-    client: AsyncClient,
-    vehicle_model: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
 ):
-
     response = await client.delete(
         f"/api/v1/models/{vehicle_model['id']}"
     )
@@ -111,11 +104,10 @@ async def test_delete_model(
 
 
 async def test_deleting_make_cascades_to_models(
-    client: AsyncClient,
-    make: dict,
-    vehicle_model: dict,
+        client: AsyncClient,
+        make: dict,
+        vehicle_model: dict,
 ):
-
     await client.delete(f"/api/v1/makes/{make['id']}")
 
     response = await client.get(

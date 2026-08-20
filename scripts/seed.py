@@ -22,7 +22,6 @@ from decimal import Decimal
 import httpx
 from faker import Faker
 
-
 BASE_URL = os.environ.get(
     "SEED_BASE_URL",
     "http://localhost:8000/api/v1",
@@ -58,7 +57,6 @@ GARAGE_COUNT = 5
 
 
 async def get_or_create_make(client: httpx.AsyncClient, name: str) -> dict:
-
     existing = await client.get("/makes")
 
     for make in existing.json():
@@ -72,11 +70,10 @@ async def get_or_create_make(client: httpx.AsyncClient, name: str) -> dict:
 
 
 async def get_or_create_model(
-    client: httpx.AsyncClient,
-    make_id: int,
-    name: str,
+        client: httpx.AsyncClient,
+        make_id: int,
+        name: str,
 ) -> dict:
-
     existing = await client.get("/models", params={"make_id": make_id})
 
     for model in existing.json():
@@ -93,7 +90,6 @@ async def get_or_create_model(
 
 
 async def get_or_create_garage(client: httpx.AsyncClient, name: str) -> dict:
-
     existing = await client.get("/garages")
 
     for garage in existing.json():
@@ -115,9 +111,9 @@ async def get_or_create_garage(client: httpx.AsyncClient, name: str) -> dict:
 
 
 async def get_or_create_user(
-    client: httpx.AsyncClient,
-    email: str,
-    password: str,
+        client: httpx.AsyncClient,
+        email: str,
+        password: str,
 ) -> dict:
     """Register the demo user, or log in if a previous run already did."""
 
@@ -139,11 +135,10 @@ async def get_or_create_user(
 
 
 async def create_vehicle(
-    client: httpx.AsyncClient,
-    headers: dict,
-    model_id: int,
+        client: httpx.AsyncClient,
+        headers: dict,
+        model_id: int,
 ) -> dict:
-
     response = await client.post(
         "/vehicles",
         json={
@@ -161,12 +156,11 @@ async def create_vehicle(
 
 
 async def create_service_record(
-    client: httpx.AsyncClient,
-    headers: dict,
-    vehicle_id: int,
-    garage_id: int | None,
+        client: httpx.AsyncClient,
+        headers: dict,
+        vehicle_id: int,
+        garage_id: int | None,
 ) -> dict:
-
     payload = {
         "garage_id": garage_id,
         "service_date": fake.date_between(
@@ -190,13 +184,12 @@ async def create_service_record(
 
 
 async def upload_receipt(
-    client: httpx.AsyncClient,
-    headers: dict,
-    record_id: int,
-    description: str,
-    cost: str,
+        client: httpx.AsyncClient,
+        headers: dict,
+        record_id: int,
+        description: str,
+        cost: str,
 ) -> dict:
-
     content = f"Receipt for: {description}\nTotal: ${cost}\n".encode()
 
     response = await client.post(
@@ -210,7 +203,6 @@ async def upload_receipt(
 
 
 async def seed() -> None:
-
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=30) as client:
 
         health_url = BASE_URL.removesuffix("/api/v1") + "/health"

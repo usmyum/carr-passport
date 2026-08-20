@@ -2,11 +2,10 @@ from httpx import AsyncClient
 
 
 async def test_create_vehicle(
-    client: AsyncClient,
-    vehicle_model: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
+        auth_headers: dict,
 ):
-
     response = await client.post(
         "/api/v1/vehicles",
         json={
@@ -29,10 +28,9 @@ async def test_create_vehicle(
 
 
 async def test_create_vehicle_without_token_returns_401(
-    client: AsyncClient,
-    vehicle_model: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
 ):
-
     response = await client.post(
         "/api/v1/vehicles",
         json={
@@ -45,10 +43,9 @@ async def test_create_vehicle_without_token_returns_401(
 
 
 async def test_create_vehicle_with_unknown_model_returns_404(
-    client: AsyncClient,
-    auth_headers: dict,
+        client: AsyncClient,
+        auth_headers: dict,
 ):
-
     response = await client.post(
         "/api/v1/vehicles",
         json={
@@ -62,11 +59,10 @@ async def test_create_vehicle_with_unknown_model_returns_404(
 
 
 async def test_duplicate_vin_conflicts(
-    client: AsyncClient,
-    vehicle_model: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
+        auth_headers: dict,
 ):
-
     payload = {
         "model_id": vehicle_model["id"],
         "year": 2019,
@@ -89,11 +85,10 @@ async def test_duplicate_vin_conflicts(
 
 
 async def test_list_vehicles_is_paginated(
-    client: AsyncClient,
-    vehicle_model: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
+        auth_headers: dict,
 ):
-
     for year in (2018, 2019, 2020):
         await client.post(
             "/api/v1/vehicles",
@@ -120,11 +115,10 @@ async def test_list_vehicles_is_paginated(
 
 
 async def test_list_vehicles_only_returns_your_own(
-    client: AsyncClient,
-    vehicle_model: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
+        auth_headers: dict,
 ):
-
     await client.post(
         "/api/v1/vehicles",
         json={"model_id": vehicle_model["id"], "year": 2019},
@@ -149,11 +143,10 @@ async def test_list_vehicles_only_returns_your_own(
 
 
 async def test_update_vehicle_mileage(
-    client: AsyncClient,
-    vehicle_model: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
+        auth_headers: dict,
 ):
-
     created = await client.post(
         "/api/v1/vehicles",
         json={
@@ -178,11 +171,10 @@ async def test_update_vehicle_mileage(
 
 
 async def test_delete_vehicle(
-    client: AsyncClient,
-    vehicle_model: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
+        auth_headers: dict,
 ):
-
     created = await client.post(
         "/api/v1/vehicles",
         json={
@@ -203,11 +195,10 @@ async def test_delete_vehicle(
 
 
 async def test_impossible_year_is_rejected(
-    client: AsyncClient,
-    vehicle_model: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle_model: dict,
+        auth_headers: dict,
 ):
-
     response = await client.post(
         "/api/v1/vehicles",
         json={

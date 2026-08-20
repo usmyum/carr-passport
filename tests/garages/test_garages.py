@@ -2,7 +2,6 @@ from httpx import AsyncClient
 
 
 async def test_create_garage(client: AsyncClient):
-
     response = await client.post(
         "/api/v1/garages",
         json={"name": "Joe's Auto Shop", "phone": "555-1234"},
@@ -17,7 +16,6 @@ async def test_create_garage(client: AsyncClient):
 
 
 async def test_duplicate_garage_is_rejected(client: AsyncClient):
-
     await client.post("/api/v1/garages", json={"name": "Joe's Auto Shop"})
 
     response = await client.post(
@@ -29,7 +27,6 @@ async def test_duplicate_garage_is_rejected(client: AsyncClient):
 
 
 async def test_list_garages(client: AsyncClient):
-
     await client.post("/api/v1/garages", json={"name": "Zed Motors"})
     await client.post("/api/v1/garages", json={"name": "Ace Garage"})
 
@@ -43,7 +40,6 @@ async def test_list_garages(client: AsyncClient):
 
 
 async def test_update_garage(client: AsyncClient):
-
     created = await client.post(
         "/api/v1/garages",
         json={"name": "Old Name"},
@@ -60,7 +56,6 @@ async def test_update_garage(client: AsyncClient):
 
 
 async def test_delete_garage(client: AsyncClient):
-
     created = await client.post(
         "/api/v1/garages",
         json={"name": "Temporary Garage"},

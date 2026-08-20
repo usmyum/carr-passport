@@ -11,11 +11,11 @@ from app.shared.storage import Storage, build_object_key
 class ReceiptService:
 
     def __init__(
-            self,
-            repository: ReceiptRepository,
-            service_record_repository: ServiceRecordRepository,
-            vehicle_repository: VehicleRepository,
-            storage: Storage,
+        self,
+        repository: ReceiptRepository,
+        service_record_repository: ServiceRecordRepository,
+        vehicle_repository: VehicleRepository,
+        storage: Storage,
     ):
         self.repository = repository
         self.service_record_repository = service_record_repository
@@ -23,12 +23,12 @@ class ReceiptService:
         self.storage = storage
 
     async def upload(
-            self,
-            service_record_id: int,
-            filename: str,
-            content_type: str,
-            content: bytes,
-            owner_id: int,
+        self,
+        service_record_id: int,
+        filename: str,
+        content_type: str,
+        content: bytes,
+        owner_id: int,
     ) -> Receipt:
 
         await self._get_owned_service_record(service_record_id, owner_id)
@@ -53,9 +53,9 @@ class ReceiptService:
         return await self.repository.create(receipt)
 
     async def list_for_service_record(
-            self,
-            service_record_id: int,
-            owner_id: int,
+        self,
+        service_record_id: int,
+        owner_id: int,
     ) -> list[Receipt]:
 
         await self._get_owned_service_record(service_record_id, owner_id)
@@ -65,9 +65,9 @@ class ReceiptService:
         )
 
     async def get_download_url(
-            self,
-            receipt_id: int,
-            owner_id: int,
+        self,
+        receipt_id: int,
+        owner_id: int,
     ) -> str:
 
         receipt = await self._get_owned_receipt(receipt_id, owner_id)
@@ -83,9 +83,9 @@ class ReceiptService:
         await self.repository.delete(receipt)
 
     async def _get_owned_service_record(
-            self,
-            service_record_id: int,
-            owner_id: int,
+        self,
+        service_record_id: int,
+        owner_id: int,
     ) -> ServiceRecord:
         """Ownership is two hops up: receipt -> service record -> vehicle."""
 
@@ -106,9 +106,9 @@ class ReceiptService:
         return record
 
     async def _get_owned_receipt(
-            self,
-            receipt_id: int,
-            owner_id: int,
+        self,
+        receipt_id: int,
+        owner_id: int,
     ) -> Receipt:
 
         receipt = await self.repository.get_by_id(receipt_id)

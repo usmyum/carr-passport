@@ -2,12 +2,11 @@ from httpx import AsyncClient
 
 
 async def test_create_service_record(
-    client: AsyncClient,
-    vehicle: dict,
-    garage: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle: dict,
+        garage: dict,
+        auth_headers: dict,
 ):
-
     response = await client.post(
         f"/api/v1/service-records/vehicle/{vehicle['id']}",
         json={
@@ -31,11 +30,10 @@ async def test_create_service_record(
 
 
 async def test_create_service_record_without_garage(
-    client: AsyncClient,
-    vehicle: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle: dict,
+        auth_headers: dict,
 ):
-
     response = await client.post(
         f"/api/v1/service-records/vehicle/{vehicle['id']}",
         json={
@@ -50,10 +48,9 @@ async def test_create_service_record_without_garage(
 
 
 async def test_create_service_record_for_someone_elses_vehicle_returns_404(
-    client: AsyncClient,
-    vehicle: dict,
+        client: AsyncClient,
+        vehicle: dict,
 ):
-
     other_user = await client.post(
         "/api/v1/auth/register",
         json={"email": "other@example.com", "password": "supersecret"},
@@ -75,11 +72,10 @@ async def test_create_service_record_for_someone_elses_vehicle_returns_404(
 
 
 async def test_list_service_records_for_vehicle(
-    client: AsyncClient,
-    vehicle: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle: dict,
+        auth_headers: dict,
 ):
-
     for description in ("Oil change", "Brake pads"):
         await client.post(
             f"/api/v1/service-records/vehicle/{vehicle['id']}",
@@ -100,11 +96,10 @@ async def test_list_service_records_for_vehicle(
 
 
 async def test_update_service_record(
-    client: AsyncClient,
-    vehicle: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle: dict,
+        auth_headers: dict,
 ):
-
     created = await client.post(
         f"/api/v1/service-records/vehicle/{vehicle['id']}",
         json={
@@ -127,11 +122,10 @@ async def test_update_service_record(
 
 
 async def test_delete_service_record(
-    client: AsyncClient,
-    vehicle: dict,
-    auth_headers: dict,
+        client: AsyncClient,
+        vehicle: dict,
+        auth_headers: dict,
 ):
-
     created = await client.post(
         f"/api/v1/service-records/vehicle/{vehicle['id']}",
         json={

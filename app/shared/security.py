@@ -14,6 +14,7 @@ import jwt
 from app.core.config import settings
 from app.shared.exceptions import UnauthorizedException
 
+
 # bcrypt silently ignores everything past 72 bytes, so a 200-character
 # password would authenticate against its own first 72 bytes. Reject instead.
 BCRYPT_MAX_BYTES = 72
@@ -22,6 +23,7 @@ TokenType = Literal["access", "refresh"]
 
 
 def hash_password(password: str) -> str:
+
     password_bytes = password.encode("utf-8")
 
     if len(password_bytes) > BCRYPT_MAX_BYTES:
@@ -36,9 +38,10 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(
-        password: str,
-        password_hash: str,
+    password: str,
+    password_hash: str,
 ) -> bool:
+
     password_bytes = password.encode("utf-8")
 
     if len(password_bytes) > BCRYPT_MAX_BYTES:
@@ -55,11 +58,12 @@ def verify_password(
 
 
 def _create_token(
-        subject: str | int,
-        token_type: TokenType,
-        expires_delta: timedelta,
-        extra_claims: dict[str, Any] | None = None,
+    subject: str | int,
+    token_type: TokenType,
+    expires_delta: timedelta,
+    extra_claims: dict[str, Any] | None = None,
 ) -> str:
+
     now = datetime.now(timezone.utc)
 
     payload: dict[str, Any] = {
@@ -80,9 +84,10 @@ def _create_token(
 
 
 def create_access_token(
-        subject: str | int,
-        extra_claims: dict[str, Any] | None = None,
+    subject: str | int,
+    extra_claims: dict[str, Any] | None = None,
 ) -> str:
+
     return _create_token(
         subject=subject,
         token_type="access",
@@ -94,8 +99,9 @@ def create_access_token(
 
 
 def create_refresh_token(
-        subject: str | int,
+    subject: str | int,
 ) -> str:
+
     return _create_token(
         subject=subject,
         token_type="refresh",
@@ -106,9 +112,10 @@ def create_refresh_token(
 
 
 def decode_token(
-        token: str,
-        expected_type: TokenType,
+    token: str,
+    expected_type: TokenType,
 ) -> dict[str, Any]:
+
     try:
         payload = jwt.decode(
             token,

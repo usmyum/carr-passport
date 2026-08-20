@@ -14,6 +14,7 @@ from app.modules.users.schemas import (
 )
 from app.modules.users.service import UserService
 
+
 auth_router = APIRouter(
     prefix="/auth",
     tags=["Auth"],
@@ -26,8 +27,9 @@ users_router = APIRouter(
 
 
 def get_user_service(
-        db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> UserService:
+
     return UserService(
         UserRepository(db)
     )
@@ -40,8 +42,8 @@ def get_user_service(
     summary="Create an account",
 )
 async def register(
-        data: RegisterRequest,
-        service: UserService = Depends(get_user_service),
+    data: RegisterRequest,
+    service: UserService = Depends(get_user_service),
 ):
     _, access_token, refresh_token = await service.register(data)
 
@@ -57,8 +59,8 @@ async def register(
     summary="Log in",
 )
 async def login(
-        data: LoginRequest,
-        service: UserService = Depends(get_user_service),
+    data: LoginRequest,
+    service: UserService = Depends(get_user_service),
 ):
     _, access_token, refresh_token = await service.login(data)
 
@@ -74,8 +76,8 @@ async def login(
     summary="Exchange a refresh token for a new access token",
 )
 async def refresh(
-        data: RefreshRequest,
-        service: UserService = Depends(get_user_service),
+    data: RefreshRequest,
+    service: UserService = Depends(get_user_service),
 ):
     access_token = await service.refresh(data.refresh_token)
 
@@ -88,6 +90,6 @@ async def refresh(
     summary="The logged-in user",
 )
 async def get_me(
-        current_user: CurrentUser,
+    current_user: CurrentUser,
 ):
     return current_user

@@ -37,9 +37,9 @@ class MakeService:
         return await self.repository.get_all()
 
     async def update(
-            self,
-            make_id: int,
-            data: MakeUpdate,
+        self,
+        make_id: int,
+        data: MakeUpdate,
     ) -> Make:
 
         make = await self.get(make_id)
@@ -63,9 +63,9 @@ class MakeService:
         await self.repository.delete(make)
 
     async def _ensure_name_is_free(
-            self,
-            name: str,
-            exclude_id: int | None = None,
+        self,
+        name: str,
+        exclude_id: int | None = None,
     ) -> None:
 
         existing = await self.repository.get_by_name(name)

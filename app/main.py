@@ -10,7 +10,9 @@ from app.modules.vehicle_models.router import router as vehicle_models_router
 from app.modules.vehicles.router import router as vehicles_router
 from app.shared.handlers import register_exception_handlers
 
+
 API_PREFIX = "/api/v1"
+
 
 app = FastAPI(
     title="Car Passport API",
@@ -21,17 +23,19 @@ app = FastAPI(
     version="0.1.0",
 )
 
+
 register_exception_handlers(app)
 
+
 for router in (
-        auth_router,
-        users_router,
-        makes_router,
-        vehicle_models_router,
-        vehicles_router,
-        garages_router,
-        service_records_router,
-        receipts_router,
+    auth_router,
+    users_router,
+    makes_router,
+    vehicle_models_router,
+    vehicles_router,
+    garages_router,
+    service_records_router,
+    receipts_router,
 ):
     app.include_router(
         router,

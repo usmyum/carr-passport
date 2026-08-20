@@ -15,8 +15,8 @@ class AppException(Exception):
     error_code: str = "internal_error"
 
     def __init__(
-            self,
-            detail: str | None = None,
+        self,
+        detail: str | None = None,
     ):
         self.detail = detail or self.default_detail
 

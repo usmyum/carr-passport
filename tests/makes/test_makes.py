@@ -2,7 +2,6 @@ from httpx import AsyncClient
 
 
 async def test_create_make(client: AsyncClient):
-
     response = await client.post(
         "/api/v1/makes",
         json={"name": "Toyota"},
@@ -17,7 +16,6 @@ async def test_create_make(client: AsyncClient):
 
 
 async def test_duplicate_make_is_rejected(client: AsyncClient):
-
     await client.post("/api/v1/makes", json={"name": "Toyota"})
 
     response = await client.post(
@@ -30,7 +28,6 @@ async def test_duplicate_make_is_rejected(client: AsyncClient):
 
 
 async def test_list_makes(client: AsyncClient):
-
     await client.post("/api/v1/makes", json={"name": "Honda"})
     await client.post("/api/v1/makes", json={"name": "Audi"})
 
@@ -44,7 +41,6 @@ async def test_list_makes(client: AsyncClient):
 
 
 async def test_get_make(client: AsyncClient, make: dict):
-
     response = await client.get(f"/api/v1/makes/{make['id']}")
 
     assert response.status_code == 200
@@ -52,7 +48,6 @@ async def test_get_make(client: AsyncClient, make: dict):
 
 
 async def test_get_missing_make_returns_404(client: AsyncClient):
-
     response = await client.get("/api/v1/makes/9999")
 
     assert response.status_code == 404
@@ -60,7 +55,6 @@ async def test_get_missing_make_returns_404(client: AsyncClient):
 
 
 async def test_update_make(client: AsyncClient, make: dict):
-
     response = await client.put(
         f"/api/v1/makes/{make['id']}",
         json={"name": "Lexus"},
@@ -72,10 +66,9 @@ async def test_update_make(client: AsyncClient, make: dict):
 
 
 async def test_update_make_to_existing_name_conflicts(
-    client: AsyncClient,
-    make: dict,
+        client: AsyncClient,
+        make: dict,
 ):
-
     await client.post("/api/v1/makes", json={"name": "Honda"})
 
     response = await client.put(
@@ -87,7 +80,6 @@ async def test_update_make_to_existing_name_conflicts(
 
 
 async def test_delete_make(client: AsyncClient, make: dict):
-
     response = await client.delete(f"/api/v1/makes/{make['id']}")
 
     assert response.status_code == 204
@@ -98,7 +90,6 @@ async def test_delete_make(client: AsyncClient, make: dict):
 
 
 async def test_blank_name_is_a_validation_error(client: AsyncClient):
-
     response = await client.post(
         "/api/v1/makes",
         json={"name": ""},

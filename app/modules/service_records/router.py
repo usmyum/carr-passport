@@ -14,6 +14,7 @@ from app.modules.users.dependencies import CurrentUser
 from app.modules.vehicles.repository import VehicleRepository
 from app.shared.pagination import Page, PageParams, get_page_params
 
+
 router = APIRouter(
     prefix="/service-records",
     tags=["Service Records"],
@@ -21,8 +22,9 @@ router = APIRouter(
 
 
 def get_service_record_service(
-        db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> ServiceRecordService:
+
     return ServiceRecordService(
         repository=ServiceRecordRepository(db),
         vehicle_repository=VehicleRepository(db),
@@ -37,10 +39,10 @@ def get_service_record_service(
     summary="Add a service record to a vehicle",
 )
 async def create_service_record(
-        vehicle_id: int,
-        data: ServiceRecordCreate,
-        current_user: CurrentUser,
-        service: ServiceRecordService = Depends(get_service_record_service),
+    vehicle_id: int,
+    data: ServiceRecordCreate,
+    current_user: CurrentUser,
+    service: ServiceRecordService = Depends(get_service_record_service),
 ):
     return await service.create(
         vehicle_id,
@@ -55,11 +57,12 @@ async def create_service_record(
     summary="List a vehicle's service records",
 )
 async def get_service_records(
-        vehicle_id: int,
-        current_user: CurrentUser,
-        params: PageParams = Depends(get_page_params),
-        service: ServiceRecordService = Depends(get_service_record_service),
+    vehicle_id: int,
+    current_user: CurrentUser,
+    params: PageParams = Depends(get_page_params),
+    service: ServiceRecordService = Depends(get_service_record_service),
 ):
+
     items, total = await service.paginate_for_vehicle(
         vehicle_id,
         params,
@@ -82,9 +85,9 @@ async def get_service_records(
     summary="Get a service record",
 )
 async def get_service_record(
-        record_id: int,
-        current_user: CurrentUser,
-        service: ServiceRecordService = Depends(get_service_record_service),
+    record_id: int,
+    current_user: CurrentUser,
+    service: ServiceRecordService = Depends(get_service_record_service),
 ):
     return await service.get(record_id, owner_id=current_user.id)
 
@@ -95,10 +98,10 @@ async def get_service_record(
     summary="Update a service record",
 )
 async def update_service_record(
-        record_id: int,
-        data: ServiceRecordUpdate,
-        current_user: CurrentUser,
-        service: ServiceRecordService = Depends(get_service_record_service),
+    record_id: int,
+    data: ServiceRecordUpdate,
+    current_user: CurrentUser,
+    service: ServiceRecordService = Depends(get_service_record_service),
 ):
     return await service.update(
         record_id,
@@ -113,8 +116,8 @@ async def update_service_record(
     summary="Delete a service record",
 )
 async def delete_service_record(
-        record_id: int,
-        current_user: CurrentUser,
-        service: ServiceRecordService = Depends(get_service_record_service),
+    record_id: int,
+    current_user: CurrentUser,
+    service: ServiceRecordService = Depends(get_service_record_service),
 ):
     await service.delete(record_id, owner_id=current_user.id)

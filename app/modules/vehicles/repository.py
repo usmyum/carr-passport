@@ -15,16 +15,17 @@ class VehicleRepository(BaseRepository[Vehicle]):
         return await self.find_one(Vehicle.vin == vin)
 
     async def get_by_registration_number(
-            self,
-            registration_number: str,
+        self,
+        registration_number: str,
     ) -> Vehicle | None:
+
         return await self.find_one(
             Vehicle.registration_number == registration_number
         )
 
     async def get_with_model(
-            self,
-            vehicle_id: int,
+        self,
+        vehicle_id: int,
     ) -> Vehicle | None:
         """Vehicle plus its model and make in one round trip.
 
@@ -44,10 +45,11 @@ class VehicleRepository(BaseRepository[Vehicle]):
         return result.scalar_one_or_none()
 
     async def paginate(
-            self,
-            params: PageParams,
-            *filters: ColumnElement[bool],
+        self,
+        params: PageParams,
+        *filters: ColumnElement[bool],
     ) -> tuple[list[Vehicle], int]:
+
         items = await self.list(
             *filters,
             order_by=Vehicle.id.desc(),

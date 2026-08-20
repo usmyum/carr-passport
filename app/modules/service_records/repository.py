@@ -7,10 +7,11 @@ class ServiceRecordRepository(BaseRepository[ServiceRecord]):
     model = ServiceRecord
 
     async def paginate_for_vehicle(
-            self,
-            vehicle_id: int,
-            params: PageParams,
+        self,
+        vehicle_id: int,
+        params: PageParams,
     ) -> tuple[list[ServiceRecord], int]:
+
         filters = (ServiceRecord.vehicle_id == vehicle_id,)
 
         items = await self.list(

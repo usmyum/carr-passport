@@ -17,8 +17,8 @@ class UserService:
         self.repository = repository
 
     async def register(
-            self,
-            data: RegisterRequest,
+        self,
+        data: RegisterRequest,
     ) -> tuple[User, str, str]:
 
         email = data.email.strip().lower()
@@ -36,8 +36,8 @@ class UserService:
         return user, *self._issue_tokens(user)
 
     async def login(
-            self,
-            data: LoginRequest,
+        self,
+        data: LoginRequest,
     ) -> tuple[User, str, str]:
 
         email = data.email.strip().lower()

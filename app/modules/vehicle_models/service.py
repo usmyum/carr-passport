@@ -12,17 +12,17 @@ from app.shared.slug import generate_slug
 class VehicleModelService:
 
     def __init__(
-            self,
-            repository: VehicleModelRepository,
-            make_repository: MakeRepository,
+        self,
+        repository: VehicleModelRepository,
+        make_repository: MakeRepository,
     ):
         self.repository = repository
         self.make_repository = make_repository
 
     async def create(
-            self,
-            make_id: int,
-            data: VehicleModelCreate,
+        self,
+        make_id: int,
+        data: VehicleModelCreate,
     ) -> VehicleModel:
 
         if not await self.make_repository.get_by_id(make_id):
@@ -50,16 +50,16 @@ class VehicleModelService:
         return model
 
     async def get_all(
-            self,
-            make_id: int | None = None,
+        self,
+        make_id: int | None = None,
     ) -> list[VehicleModel]:
 
         return await self.repository.get_all(make_id)
 
     async def update(
-            self,
-            model_id: int,
-            data: VehicleModelUpdate,
+        self,
+        model_id: int,
+        data: VehicleModelUpdate,
     ) -> VehicleModel:
 
         model = await self.get(model_id)
@@ -84,10 +84,10 @@ class VehicleModelService:
         await self.repository.delete(model)
 
     async def _ensure_name_is_free(
-            self,
-            make_id: int,
-            name: str,
-            exclude_id: int | None = None,
+        self,
+        make_id: int,
+        name: str,
+        exclude_id: int | None = None,
     ) -> None:
 
         existing = await self.repository.get_by_name(make_id, name)
