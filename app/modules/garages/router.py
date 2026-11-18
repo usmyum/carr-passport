@@ -10,7 +10,6 @@ from app.modules.garages.schemas import (
 )
 from app.modules.garages.service import GarageService
 
-
 router = APIRouter(
     prefix="/garages",
     tags=["Garages"],

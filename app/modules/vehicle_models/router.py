@@ -11,7 +11,6 @@ from app.modules.vehicle_models.schemas import (
 )
 from app.modules.vehicle_models.service import VehicleModelService
 
-
 router = APIRouter(
     prefix="/models",
     tags=["Vehicle Models"],

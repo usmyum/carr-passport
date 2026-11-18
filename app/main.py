@@ -10,7 +10,6 @@ from app.modules.vehicle_models.router import router as vehicle_models_router
 from app.modules.vehicles.router import router as vehicles_router
 from app.shared.handlers import register_exception_handlers
 
-
 API_PREFIX = "/api/v1"
 
 

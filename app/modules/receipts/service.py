@@ -7,7 +7,6 @@ from app.modules.vehicles.repository import VehicleRepository
 from app.shared.exceptions import NotFoundException, ValidationException
 from app.shared.storage import Storage, build_object_key
 
-
 # A client-supplied content_type is just a claim, not a guarantee — this
 # doesn't sniff the actual bytes. It's a floor (block obvious junk like
 # executables), not a real security boundary.

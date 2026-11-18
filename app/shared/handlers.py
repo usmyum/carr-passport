@@ -12,7 +12,6 @@ from fastapi.responses import JSONResponse
 
 from app.shared.exceptions import AppException
 
-
 logger = logging.getLogger(__name__)
 
 

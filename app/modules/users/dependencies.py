@@ -16,7 +16,6 @@ from app.modules.users.repository import UserRepository
 from app.shared.exceptions import UnauthorizedException
 from app.shared.security import decode_token
 
-
 # FastAPI's HTTPBearer defaults to raising a bare 403 when the header is
 # missing, bypassing our error shape entirely. auto_error=False here means a
 # missing header goes through the same UnauthorizedException as a bad one.

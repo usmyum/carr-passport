@@ -13,7 +13,6 @@ from app.modules.users.dependencies import CurrentUser
 from app.modules.vehicles.repository import VehicleRepository
 from app.shared.storage import Storage, get_storage
 
-
 router = APIRouter(
     prefix="/receipts",
     tags=["Receipts"],

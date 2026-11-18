@@ -10,7 +10,6 @@ from app.modules.makes.schemas import (
 )
 from app.modules.makes.service import MakeService
 
-
 router = APIRouter(
     prefix="/makes",
     tags=["Makes"],

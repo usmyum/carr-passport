@@ -1,0 +1,10 @@
+target-version = "py313"
+line-length = 100
+extend-exclude = ["alembic/versions"]
+
+[lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = [
+    "B008",   # `Depends(...)` in default args is FastAPI's dependency-injection idiom
+    "UP046",  # keep `Generic[T]` — more familiar than PEP 695 `class Page[T]` syntax
+]

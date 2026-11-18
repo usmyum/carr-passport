@@ -14,7 +14,6 @@ from app.modules.users.schemas import (
 )
 from app.modules.users.service import UserService
 
-
 auth_router = APIRouter(
     prefix="/auth",
     tags=["Auth"],

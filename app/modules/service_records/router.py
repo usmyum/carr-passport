@@ -14,7 +14,6 @@ from app.modules.users.dependencies import CurrentUser
 from app.modules.vehicles.repository import VehicleRepository
 from app.shared.pagination import Page, PageParams, get_page_params
 
-
 router = APIRouter(
     prefix="/service-records",
     tags=["Service Records"],

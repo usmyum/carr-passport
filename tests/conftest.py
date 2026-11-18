@@ -56,7 +56,7 @@ async def engine() -> AsyncGenerator:
 
 
 @pytest.fixture
-async def db(engine) -> AsyncGenerator[AsyncSession, None]:
+async def db(engine) -> AsyncGenerator[AsyncSession]:
     session_factory = async_sessionmaker(
         bind=engine,
         class_=AsyncSession,
@@ -68,10 +68,10 @@ async def db(engine) -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture
-async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient]:
     """An HTTP client wired to the app, sharing the test's session."""
 
-    async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
+    async def override_get_db() -> AsyncGenerator[AsyncSession]:
         yield db
 
     app.dependency_overrides[get_db] = override_get_db

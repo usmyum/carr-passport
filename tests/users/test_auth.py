@@ -1,3 +1,5 @@
+from datetime import UTC
+
 from httpx import AsyncClient
 
 
@@ -88,8 +90,9 @@ async def test_get_me_with_expired_token_returns_401(
         client: AsyncClient,
         user: dict,
 ):
+    from datetime import datetime, timedelta
+
     import jwt
-    from datetime import datetime, timedelta, timezone
 
     from app.core.config import settings
 
@@ -97,8 +100,8 @@ async def test_get_me_with_expired_token_returns_401(
         {
             "sub": "1",
             "type": "access",
-            "iat": datetime.now(timezone.utc) - timedelta(hours=1),
-            "exp": datetime.now(timezone.utc) - timedelta(minutes=1),
+            "iat": datetime.now(UTC) - timedelta(hours=1),
+            "exp": datetime.now(UTC) - timedelta(minutes=1),
         },
         settings.jwt_secret_key,
         algorithm=settings.jwt_algorithm,

@@ -9,14 +9,14 @@ not a ceiling.
 mutate the entity, then hand it back to the repository to persist.
 """
 
-from typing import Any, Generic, Sequence, TypeVar
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.base import Base
-
 
 ModelType = TypeVar("ModelType", bound=Base)
 

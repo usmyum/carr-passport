@@ -111,6 +111,15 @@ docker compose exec api python -m pytest
 Tests run against a real Postgres (`car_passport_test`, created automatically
 on first `docker compose up`) and real MinIO — no mocked DB or storage layer.
 
+### Lint
+
+```bash
+docker compose exec api ruff check .
+```
+
+CI (`.github/workflows/ci.yml`) runs the lint and the full test suite on every
+push to `main` and every pull request.
+
 ## API overview
 
 All routes are prefixed with `/api/v1`. 🔒 = requires `Authorization: Bearer
@@ -147,7 +156,7 @@ network (`S3_PUBLIC_ENDPOINT_URL`). 54 tests, all green.
 - Password reset / email verification
 - Refresh-token rotation or revocation (tokens just expire — no blacklist)
 - A dashboard/aggregation endpoint (e.g. "upcoming service across all your vehicles")
-- Rate limiting, structured logging, CI
+- Rate limiting, structured logging
 
 See recent commit history / conversation notes for the reasoning behind
 specific architectural choices (ownership via 404 vs 403, CASCADE vs RESTRICT

@@ -213,7 +213,7 @@ async def seed() -> None:
             raise SystemExit(
                 f"Could not reach the API at {BASE_URL}. "
                 "Is `docker compose up -d` running?"
-            )
+            ) from None
 
         print(f"Seeding {BASE_URL} ...\n")
 

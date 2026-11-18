@@ -5,7 +5,7 @@ imported by anything. The `current_user` dependency that *does* know about
 users lives in the auth module.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
 import bcrypt
@@ -13,7 +13,6 @@ import jwt
 
 from app.core.config import settings
 from app.shared.exceptions import UnauthorizedException
-
 
 # bcrypt silently ignores everything past 72 bytes, so a 200-character
 # password would authenticate against its own first 72 bytes. Reject instead.
@@ -64,7 +63,7 @@ def _create_token(
     extra_claims: dict[str, Any] | None = None,
 ) -> str:
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     payload: dict[str, Any] = {
         "sub": str(subject),
@@ -123,9 +122,9 @@ def decode_token(
             algorithms=[settings.jwt_algorithm],
         )
     except jwt.ExpiredSignatureError:
-        raise UnauthorizedException("Token has expired")
+        raise UnauthorizedException("Token has expired") from None
     except jwt.PyJWTError:
-        raise UnauthorizedException("Token is not valid")
+        raise UnauthorizedException("Token is not valid") from None
 
     if payload.get("type") != expected_type:
         # Stops a refresh token being replayed as an access token.

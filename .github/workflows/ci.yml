@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/ruff-action@v3
+
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: car_passport_test
+          POSTGRES_USER: car_passport
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U car_passport"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Same values as .env.example, but pointed at localhost instead of the
+    # Docker Compose service names.
+    env:
+      DATABASE_URL: postgresql+psycopg://car_passport:secret@localhost:5432/car_passport
+      TEST_DATABASE_URL: postgresql+psycopg://car_passport:secret@localhost:5432/car_passport_test
+      JWT_SECRET_KEY: ci-only-secret
+      S3_ENDPOINT_URL: http://localhost:9000
+      S3_BUCKET: car-passport
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_REGION: us-east-1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # MinIO needs a `server` command, which GitHub service containers
+      # can't pass — so it's started by hand, like compose.yaml does.
+      - name: Start MinIO
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/ready && break
+            sleep 1
+          done
+          docker run --rm --network host --entrypoint sh minio/mc -c \
+            "mc alias set local http://localhost:9000 minioadmin minioadmin && mc mb local/car-passport"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - run: python -m pytest -q

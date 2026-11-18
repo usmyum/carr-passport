@@ -13,7 +13,6 @@ from app.modules.vehicles.schemas import (
 from app.modules.vehicles.service import VehicleService
 from app.shared.pagination import Page, PageParams, get_page_params
 
-
 router = APIRouter(
     prefix="/vehicles",
     tags=["Vehicles"],
