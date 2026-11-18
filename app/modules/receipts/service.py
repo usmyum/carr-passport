@@ -8,6 +8,17 @@ from app.shared.exceptions import NotFoundException, ValidationException
 from app.shared.storage import Storage, build_object_key
 
 
+# A client-supplied content_type is just a claim, not a guarantee — this
+# doesn't sniff the actual bytes. It's a floor (block obvious junk like
+# executables), not a real security boundary.
+ALLOWED_CONTENT_TYPES = {
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/heic",
+}
+
+
 class ReceiptService:
 
     def __init__(
@@ -32,6 +43,12 @@ class ReceiptService:
     ) -> Receipt:
 
         await self._get_owned_service_record(service_record_id, owner_id)
+
+        if content_type not in ALLOWED_CONTENT_TYPES:
+            raise ValidationException(
+                f"Unsupported file type: {content_type}. "
+                f"Allowed: {', '.join(sorted(ALLOWED_CONTENT_TYPES))}"
+            )
 
         if len(content) > settings.max_upload_size_bytes:
             raise ValidationException(

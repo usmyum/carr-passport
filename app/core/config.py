@@ -18,6 +18,14 @@ class Settings(BaseSettings):
 
     # Object storage (MinIO locally, S3-compatible in production)
     s3_endpoint_url: str | None = None
+
+    # Only needed locally, where the API reaches MinIO over the Docker
+    # network (`minio:9000`) but a presigned URL has to be reachable from a
+    # browser on the host (`localhost:9000`) instead. In production there's
+    # one real public S3 endpoint, so this is left unset and falls back to
+    # `s3_endpoint_url`.
+    s3_public_endpoint_url: str | None = None
+
     s3_bucket: str = "car-passport"
     s3_access_key: str = ""
     s3_secret_key: str = ""

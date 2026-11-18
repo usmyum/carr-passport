@@ -138,13 +138,14 @@ there.
 
 **Built:** the full vehicle catalog (makes → models → vehicles), JWT auth
 with per-user vehicle ownership, garages, service records, receipt uploads
-through the storage abstraction, and a demo-data seed script. 49 tests, all
-green.
+through the storage abstraction, and a demo-data seed script. Receipt uploads
+are checked against a content-type allowlist and the configured size limit;
+presigned download URLs work from a browser, not just inside the Docker
+network (`S3_PUBLIC_ENDPOINT_URL`). 54 tests, all green.
 
 **Not built yet:**
 - Password reset / email verification
 - Refresh-token rotation or revocation (tokens just expire — no blacklist)
-- Content-type/extension allowlisting on receipt uploads
 - A dashboard/aggregation endpoint (e.g. "upcoming service across all your vehicles")
 - Rate limiting, structured logging, CI
 

@@ -194,7 +194,7 @@ async def upload_receipt(
 
     response = await client.post(
         f"/receipts/service-record/{record_id}",
-        files={"file": ("receipt.txt", content, "text/plain")},
+        files={"file": ("receipt.pdf", content, "application/pdf")},
         headers=headers,
     )
     response.raise_for_status()
