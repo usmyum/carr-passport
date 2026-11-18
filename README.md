@@ -131,26 +131,41 @@ All routes are prefixed with `/api/v1`. 🔒 = requires `Authorization: Bearer
 | **Users** | 🔒 `GET /users/me` |
 | **Makes** | `POST/GET /makes`, `GET/PUT/DELETE /makes/{id}` — public catalog |
 | **Vehicle models** | `POST /models/make/{make_id}`, `GET /models?make_id=`, `GET/PUT/DELETE /models/{id}` — public catalog |
-| **Vehicles** | 🔒 `POST/GET /vehicles` (paginated), 🔒 `GET/PUT/DELETE /vehicles/{id}` — scoped to your own |
+| **Vehicles** | 🔒 `POST/GET /vehicles` (paginated, `?include_past=true` adds cars you sold), 🔒 `GET/PUT/DELETE /vehicles/{id}` |
+| **Ownership transfers** | 🔒 `POST /transfers/vehicle/{vehicle_id}`, 🔒 `GET /transfers/incoming`, 🔒 `GET /transfers/outgoing`, 🔒 `POST /transfers/{id}/accept\|decline\|cancel` |
 | **Garages** | `POST/GET /garages`, `GET/PUT/DELETE /garages/{id}` — public directory |
 | **Service records** | 🔒 `POST/GET /service-records/vehicle/{vehicle_id}` (paginated), 🔒 `GET/PUT/DELETE /service-records/{id}` |
 | **Receipts** | 🔒 `POST/GET /receipts/service-record/{id}`, 🔒 `GET /receipts/{id}/download-url`, 🔒 `DELETE /receipts/{id}` |
 
 `GET /health` (no prefix) is a plain liveness probe.
 
-Ownership is enforced with a 404, not a 403: touching a vehicle (or a service
-record, or a receipt) that belongs to someone else looks identical to it not
-existing at all — the API never confirms that someone else's resource is
-there.
+### Ownership: the history belongs to the car
+
+A vehicle is identified by its VIN, and its history follows it from owner to
+owner. Who may do what is decided in one place, `OwnershipService`:
+
+| You are… | You can |
+|---|---|
+| **Current owner** | See the full history (including previous owners' records), add records, edit/delete the records *you* added, start a transfer |
+| **Past owner** | Read-only: the vehicle, plus records dated up to the day you sold it |
+| **Anyone else** | Nothing — a 404, identical to the vehicle not existing |
+
+- A sale is a transfer: the seller offers the car to the buyer's email, the
+  buyer accepts, and ownership moves over in one transaction. Offers expire
+  after 14 days.
+- A vehicle that has ever changed hands can't be deleted — its history belongs
+  to everyone who owned it.
+- Past owners get an honest 403 on writes (they already know the car exists);
+  strangers always get a 404.
 
 ## Current status
 
-**Built:** the full vehicle catalog (makes → models → vehicles), JWT auth
-with per-user vehicle ownership, garages, service records, receipt uploads
+**Built:** the full vehicle catalog (makes → models → vehicles), JWT auth,
+VIN-based vehicles whose history transfers between owners, garages, service records, receipt uploads
 through the storage abstraction, and a demo-data seed script. Receipt uploads
 are checked against a content-type allowlist and the configured size limit;
 presigned download URLs work from a browser, not just inside the Docker
-network (`S3_PUBLIC_ENDPOINT_URL`). 54 tests, all green.
+network (`S3_PUBLIC_ENDPOINT_URL`). 67 tests, all green.
 
 **Not built yet:**
 - Password reset / email verification

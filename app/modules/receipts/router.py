@@ -8,9 +8,9 @@ from app.modules.receipts.schemas import (
     ReceiptResponse,
 )
 from app.modules.receipts.service import ReceiptService
-from app.modules.service_records.repository import ServiceRecordRepository
+from app.modules.service_records.dependencies import get_service_record_service
+from app.modules.service_records.service import ServiceRecordService
 from app.modules.users.dependencies import CurrentUser
-from app.modules.vehicles.repository import VehicleRepository
 from app.shared.storage import Storage, get_storage
 
 router = APIRouter(
@@ -22,12 +22,14 @@ router = APIRouter(
 def get_receipt_service(
     db: AsyncSession = Depends(get_db),
     storage: Storage = Depends(get_storage),
+    service_record_service: ServiceRecordService = Depends(
+        get_service_record_service
+    ),
 ) -> ReceiptService:
 
     return ReceiptService(
         repository=ReceiptRepository(db),
-        service_record_repository=ServiceRecordRepository(db),
-        vehicle_repository=VehicleRepository(db),
+        service_record_service=service_record_service,
         storage=storage,
     )
 
@@ -51,7 +53,7 @@ async def upload_receipt(
         filename=file.filename or "receipt",
         content_type=file.content_type or "application/octet-stream",
         content=content,
-        owner_id=current_user.id,
+        user_id=current_user.id,
     )
 
 
@@ -67,7 +69,7 @@ async def get_receipts(
 ):
     return await service.list_for_service_record(
         service_record_id,
-        owner_id=current_user.id,
+        user_id=current_user.id,
     )
 
 
@@ -83,7 +85,7 @@ async def get_receipt_download_url(
 ):
     url = await service.get_download_url(
         receipt_id,
-        owner_id=current_user.id,
+        user_id=current_user.id,
     )
 
     return ReceiptDownloadUrlResponse(url=url)
@@ -99,4 +101,4 @@ async def delete_receipt(
     current_user: CurrentUser,
     service: ReceiptService = Depends(get_receipt_service),
 ):
-    await service.delete(receipt_id, owner_id=current_user.id)
+    await service.delete(receipt_id, user_id=current_user.id)

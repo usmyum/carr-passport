@@ -1,9 +1,18 @@
+from app.modules.ownerships.models import VehicleOwnership
+from app.modules.ownerships.service import OwnershipService, VehicleAccess
 from app.modules.vehicle_models.repository import VehicleModelRepository
 from app.modules.vehicles.models import Vehicle
 from app.modules.vehicles.repository import VehicleRepository
 from app.modules.vehicles.schemas import VehicleCreate, VehicleUpdate
-from app.shared.exceptions import ConflictException, NotFoundException
+from app.shared.exceptions import (
+    ConflictException,
+    NotFoundException,
+    ValidationException,
+)
 from app.shared.pagination import PageParams
+
+# Optional in `VehicleUpdate` (leave out to keep), but never clearable.
+NON_NULLABLE_FIELDS = ("model_id", "year", "vin")
 
 
 class VehicleService:
@@ -12,65 +21,90 @@ class VehicleService:
         self,
         repository: VehicleRepository,
         model_repository: VehicleModelRepository,
+        ownership_service: OwnershipService,
     ):
         self.repository = repository
         self.model_repository = model_repository
+        self.ownership_service = ownership_service
 
     async def create(
         self,
         data: VehicleCreate,
         owner_id: int,
-    ) -> Vehicle:
+    ) -> tuple[Vehicle, VehicleAccess]:
 
         await self._ensure_model_exists(data.model_id)
 
-        if data.vin:
-            await self._ensure_vin_is_free(data.vin)
+        await self._ensure_vin_is_free(data.vin)
 
+        # Saved together with its first ownership period, in one commit.
         vehicle = Vehicle(
-            owner_id=owner_id,
             **data.model_dump(),
+            ownerships=[VehicleOwnership(user_id=owner_id)],
         )
 
-        return await self.repository.create(vehicle)
+        vehicle = await self.repository.create(vehicle)
 
-    async def get(self, vehicle_id: int, owner_id: int) -> Vehicle:
+        return vehicle, VehicleAccess.from_ended_at(None)
 
-        vehicle = await self.repository.get_by_id(vehicle_id)
+    async def get(
+        self,
+        vehicle_id: int,
+        user_id: int,
+    ) -> tuple[Vehicle, VehicleAccess]:
 
-        # A non-owner gets the same 404 as a vehicle that doesn't exist —
-        # the API never confirms someone else's vehicle exists.
-        if not vehicle or vehicle.owner_id != owner_id:
-            raise NotFoundException("Vehicle not found")
+        access = await self.ownership_service.require_access(
+            vehicle_id,
+            user_id,
+        )
 
-        return vehicle
+        return await self._get_vehicle(vehicle_id), access
 
     async def paginate(
         self,
         params: PageParams,
-        owner_id: int,
-    ) -> tuple[list[Vehicle], int]:
+        user_id: int,
+        include_past: bool = False,
+    ) -> tuple[list[tuple[Vehicle, VehicleAccess]], int]:
 
-        return await self.repository.paginate(
+        rows, total = await self.repository.paginate_for_user(
+            user_id,
             params,
-            Vehicle.owner_id == owner_id,
+            include_past=include_past,
         )
+
+        items = [
+            (vehicle, VehicleAccess.from_ended_at(ended_at))
+            for vehicle, ended_at in rows
+        ]
+
+        return items, total
 
     async def update(
         self,
         vehicle_id: int,
         data: VehicleUpdate,
-        owner_id: int,
-    ) -> Vehicle:
+        user_id: int,
+    ) -> tuple[Vehicle, VehicleAccess]:
 
-        vehicle = await self.get(vehicle_id, owner_id)
+        access = await self.ownership_service.require_access(
+            vehicle_id,
+            user_id,
+            write=True,
+        )
+
+        vehicle = await self._get_vehicle(vehicle_id)
 
         updates = data.model_dump(exclude_unset=True)
+
+        for field in NON_NULLABLE_FIELDS:
+            if field in updates and updates[field] is None:
+                raise ValidationException(f"{field} cannot be empty")
 
         if "model_id" in updates:
             await self._ensure_model_exists(updates["model_id"])
 
-        if updates.get("vin"):
+        if "vin" in updates:
             await self._ensure_vin_is_free(
                 updates["vin"],
                 exclude_id=vehicle.id,
@@ -79,13 +113,37 @@ class VehicleService:
         for field, value in updates.items():
             setattr(vehicle, field, value)
 
-        return await self.repository.save(vehicle)
+        return await self.repository.save(vehicle), access
 
-    async def delete(self, vehicle_id: int, owner_id: int) -> None:
+    async def delete(self, vehicle_id: int, user_id: int) -> None:
 
-        vehicle = await self.get(vehicle_id, owner_id)
+        await self.ownership_service.require_access(
+            vehicle_id,
+            user_id,
+            write=True,
+        )
+
+        # Once a car has been sold, its history belongs to everyone who has
+        # owned it — the current owner can't wipe it.
+        if await self.ownership_service.has_changed_hands(vehicle_id):
+            raise ConflictException(
+                "This vehicle has had previous owners, so its history "
+                "can't be deleted"
+            )
+
+        vehicle = await self._get_vehicle(vehicle_id)
 
         await self.repository.delete(vehicle)
+
+    async def _get_vehicle(self, vehicle_id: int) -> Vehicle:
+        """Load a vehicle whose access has already been checked."""
+
+        vehicle = await self.repository.get_by_id(vehicle_id)
+
+        if not vehicle:
+            raise NotFoundException("Vehicle not found")
+
+        return vehicle
 
     async def _ensure_model_exists(self, model_id: int) -> None:
 
@@ -104,5 +162,6 @@ class VehicleService:
 
         if existing and existing.id != exclude_id:
             raise ConflictException(
-                "A vehicle with this VIN already exists"
+                "A vehicle with this VIN is already registered. If you've "
+                "bought it, ask the current owner to transfer it to you."
             )

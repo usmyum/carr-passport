@@ -25,6 +25,7 @@ async def test_create_vehicle(
     assert body["year"] == 2019
     assert body["vin"] == "JTDBR32E720012345"
     assert body["registration_number"] == "ABC-123"
+    assert body["access"] == "owner"
 
 
 async def test_create_vehicle_without_token_returns_401(
@@ -51,6 +52,7 @@ async def test_create_vehicle_with_unknown_model_returns_404(
         json={
             "model_id": 9999,
             "year": 2019,
+            "vin": "JTDBR32E720012345",
         },
         headers=auth_headers,
     )
@@ -95,6 +97,7 @@ async def test_list_vehicles_is_paginated(
             json={
                 "model_id": vehicle_model["id"],
                 "year": year,
+                "vin": f"TESTVIN{year}",
             },
             headers=auth_headers,
         )
@@ -121,7 +124,11 @@ async def test_list_vehicles_only_returns_your_own(
 ):
     await client.post(
         "/api/v1/vehicles",
-        json={"model_id": vehicle_model["id"], "year": 2019},
+        json={
+            "model_id": vehicle_model["id"],
+            "year": 2019,
+            "vin": "JTDBR32E720012345",
+        },
         headers=auth_headers,
     )
 
@@ -152,6 +159,7 @@ async def test_update_vehicle_mileage(
         json={
             "model_id": vehicle_model["id"],
             "year": 2019,
+            "vin": "JTDBR32E720012345",
             "current_mileage": 84000,
         },
         headers=auth_headers,
@@ -180,6 +188,7 @@ async def test_delete_vehicle(
         json={
             "model_id": vehicle_model["id"],
             "year": 2019,
+            "vin": "JTDBR32E720012345",
         },
         headers=auth_headers,
     )
@@ -204,7 +213,41 @@ async def test_impossible_year_is_rejected(
         json={
             "model_id": vehicle_model["id"],
             "year": 1500,
+            "vin": "JTDBR32E720012345",
         },
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 422
+
+
+async def test_vin_is_required(
+        client: AsyncClient,
+        vehicle_model: dict,
+        auth_headers: dict,
+):
+    for vin in (None, "     "):
+        response = await client.post(
+            "/api/v1/vehicles",
+            json={
+                "model_id": vehicle_model["id"],
+                "year": 2019,
+                "vin": vin,
+            },
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 422
+
+
+async def test_vin_cannot_be_cleared(
+        client: AsyncClient,
+        vehicle: dict,
+        auth_headers: dict,
+):
+    response = await client.put(
+        f"/api/v1/vehicles/{vehicle['id']}",
+        json={"vin": None},
         headers=auth_headers,
     )
 

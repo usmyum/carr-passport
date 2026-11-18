@@ -1,9 +1,6 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.database import get_db
-from app.modules.garages.repository import GarageRepository
-from app.modules.service_records.repository import ServiceRecordRepository
+from app.modules.service_records.dependencies import get_service_record_service
 from app.modules.service_records.schemas import (
     ServiceRecordCreate,
     ServiceRecordResponse,
@@ -11,24 +8,12 @@ from app.modules.service_records.schemas import (
 )
 from app.modules.service_records.service import ServiceRecordService
 from app.modules.users.dependencies import CurrentUser
-from app.modules.vehicles.repository import VehicleRepository
 from app.shared.pagination import Page, PageParams, get_page_params
 
 router = APIRouter(
     prefix="/service-records",
     tags=["Service Records"],
 )
-
-
-def get_service_record_service(
-    db: AsyncSession = Depends(get_db),
-) -> ServiceRecordService:
-
-    return ServiceRecordService(
-        repository=ServiceRecordRepository(db),
-        vehicle_repository=VehicleRepository(db),
-        garage_repository=GarageRepository(db),
-    )
 
 
 @router.post(
@@ -46,7 +31,7 @@ async def create_service_record(
     return await service.create(
         vehicle_id,
         data,
-        owner_id=current_user.id,
+        user_id=current_user.id,
     )
 
 
@@ -65,7 +50,7 @@ async def get_service_records(
     items, total = await service.paginate_for_vehicle(
         vehicle_id,
         params,
-        owner_id=current_user.id,
+        user_id=current_user.id,
     )
 
     return Page[ServiceRecordResponse].build(
@@ -88,7 +73,7 @@ async def get_service_record(
     current_user: CurrentUser,
     service: ServiceRecordService = Depends(get_service_record_service),
 ):
-    return await service.get(record_id, owner_id=current_user.id)
+    return await service.get(record_id, user_id=current_user.id)
 
 
 @router.put(
@@ -105,7 +90,7 @@ async def update_service_record(
     return await service.update(
         record_id,
         data,
-        owner_id=current_user.id,
+        user_id=current_user.id,
     )
 
 
@@ -119,4 +104,4 @@ async def delete_service_record(
     current_user: CurrentUser,
     service: ServiceRecordService = Depends(get_service_record_service),
 ):
-    await service.delete(record_id, owner_id=current_user.id)
+    await service.delete(record_id, user_id=current_user.id)

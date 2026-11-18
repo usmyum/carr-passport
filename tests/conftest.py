@@ -141,6 +141,21 @@ def auth_headers(user: dict) -> dict:
 
 
 @pytest.fixture
+async def other_headers(client: AsyncClient) -> dict:
+    """Auth headers for a second user — a buyer, or a stranger."""
+
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "other@example.com",
+            "password": "supersecret",
+        },
+    )
+
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+@pytest.fixture
 async def vehicle(
         client: AsyncClient,
         vehicle_model: dict,
@@ -153,6 +168,7 @@ async def vehicle(
         json={
             "model_id": vehicle_model["id"],
             "year": 2019,
+            "vin": "JTDBR32E720012345",
         },
         headers=auth_headers,
     )

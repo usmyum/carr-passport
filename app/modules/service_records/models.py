@@ -38,6 +38,18 @@ class ServiceRecord(Base, TimestampMixin):
         index=True,
     )
 
+    # Who added the record. Only they can change it later, so a new owner
+    # can't rewrite the previous owner's history. Nullable for records
+    # whose author is gone (or, later, records added by a garage).
+    created_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey(
+            "users.id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+        index=True,
+    )
+
     service_date: Mapped[date_type] = mapped_column(
         Date,
         nullable=False,

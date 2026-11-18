@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.modules.garages.router import router as garages_router
 from app.modules.makes.router import router as makes_router
+from app.modules.ownerships.router import router as ownerships_router
 from app.modules.receipts.router import router as receipts_router
 from app.modules.service_records.router import router as service_records_router
 from app.modules.users.router import auth_router, users_router
@@ -32,6 +33,7 @@ for router in (
     makes_router,
     vehicle_models_router,
     vehicles_router,
+    ownerships_router,
     garages_router,
     service_records_router,
     receipts_router,
