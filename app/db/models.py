@@ -11,6 +11,7 @@ from app.modules.makes.models import Make
 from app.modules.mileage_logs.models import MileageLog
 from app.modules.ownerships.models import OwnershipTransfer, VehicleOwnership
 from app.modules.receipts.models import Receipt
+from app.modules.reminders.models import Reminder
 from app.modules.service_records.models import ServiceRecord
 from app.modules.users.models import OneTimeToken, RefreshToken, User
 from app.modules.vehicle_models.models import VehicleModel
@@ -24,6 +25,7 @@ __all__ = [
     "OwnershipTransfer",
     "Receipt",
     "RefreshToken",
+    "Reminder",
     "ServiceRecord",
     "User",
     "VehicleModel",

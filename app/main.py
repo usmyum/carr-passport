@@ -8,6 +8,7 @@ from app.modules.makes.router import router as makes_router
 from app.modules.mileage_logs.router import router as mileage_logs_router
 from app.modules.ownerships.router import router as ownerships_router
 from app.modules.receipts.router import router as receipts_router
+from app.modules.reminders.router import router as reminders_router
 from app.modules.service_records.router import router as service_records_router
 from app.modules.users.router import auth_router, users_router
 from app.modules.vehicle_models.router import router as vehicle_models_router
@@ -45,6 +46,7 @@ for router in (
     receipts_router,
     mileage_logs_router,
     documents_router,
+    reminders_router,
 ):
     app.include_router(
         router,
