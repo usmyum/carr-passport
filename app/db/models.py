@@ -5,6 +5,7 @@ Every new module must add its models here or migrations will silently miss
 the new tables.
 """
 
+from app.modules.documents.models import VehicleDocument
 from app.modules.garages.models import Garage
 from app.modules.makes.models import Make
 from app.modules.mileage_logs.models import MileageLog
@@ -27,5 +28,6 @@ __all__ = [
     "User",
     "VehicleModel",
     "Vehicle",
+    "VehicleDocument",
     "VehicleOwnership",
 ]

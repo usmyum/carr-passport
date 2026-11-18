@@ -18,7 +18,32 @@ from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
 
 from app.core.config import settings
-from app.shared.exceptions import StorageException
+from app.shared.exceptions import StorageException, ValidationException
+
+# A client-supplied content_type is just a claim, not a guarantee — this
+# doesn't sniff the actual bytes. It's a floor (block obvious junk like
+# executables), not a real security boundary.
+ALLOWED_CONTENT_TYPES = {
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/heic",
+}
+
+
+def ensure_upload_allowed(content_type: str, size_bytes: int) -> None:
+    """The checks every user upload (receipts, documents) must pass."""
+
+    if content_type not in ALLOWED_CONTENT_TYPES:
+        raise ValidationException(
+            f"Unsupported file type: {content_type}. "
+            f"Allowed: {', '.join(sorted(ALLOWED_CONTENT_TYPES))}"
+        )
+
+    if size_bytes > settings.max_upload_size_bytes:
+        raise ValidationException(
+            f"File exceeds the {settings.max_upload_size_mb}MB limit"
+        )
 
 
 def build_object_key(

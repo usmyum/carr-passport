@@ -238,3 +238,27 @@ async def service_record(
     )
 
     return response.json()
+
+
+@pytest.fixture
+def sell_vehicle(
+        client: AsyncClient,
+        vehicle: dict,
+        auth_headers: dict,
+        other_headers: dict,
+):
+    """Call to sell `vehicle` from the `user` fixture to `other_headers`'s user."""
+
+    async def sell() -> None:
+        offer = await client.post(
+            f"/api/v1/transfers/vehicle/{vehicle['id']}",
+            json={"to_email": "other@example.com"},
+            headers=auth_headers,
+        )
+        accepted = await client.post(
+            f"/api/v1/transfers/{offer.json()['id']}/accept",
+            headers=other_headers,
+        )
+        assert accepted.status_code == 200
+
+    return sell

@@ -1,19 +1,8 @@
-from app.core.config import settings
 from app.modules.receipts.models import Receipt
 from app.modules.receipts.repository import ReceiptRepository
 from app.modules.service_records.service import ServiceRecordService
-from app.shared.exceptions import NotFoundException, ValidationException
-from app.shared.storage import Storage, build_object_key
-
-# A client-supplied content_type is just a claim, not a guarantee — this
-# doesn't sniff the actual bytes. It's a floor (block obvious junk like
-# executables), not a real security boundary.
-ALLOWED_CONTENT_TYPES = {
-    "application/pdf",
-    "image/jpeg",
-    "image/png",
-    "image/heic",
-}
+from app.shared.exceptions import NotFoundException
+from app.shared.storage import Storage, build_object_key, ensure_upload_allowed
 
 
 class ReceiptService:
@@ -44,16 +33,7 @@ class ReceiptService:
             user_id,
         )
 
-        if content_type not in ALLOWED_CONTENT_TYPES:
-            raise ValidationException(
-                f"Unsupported file type: {content_type}. "
-                f"Allowed: {', '.join(sorted(ALLOWED_CONTENT_TYPES))}"
-            )
-
-        if len(content) > settings.max_upload_size_bytes:
-            raise ValidationException(
-                f"File exceeds the {settings.max_upload_size_mb}MB limit"
-            )
+        ensure_upload_allowed(content_type, len(content))
 
         key = build_object_key("receipts", filename)
 
