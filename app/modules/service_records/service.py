@@ -1,4 +1,5 @@
 from app.modules.garages.repository import GarageRepository
+from app.modules.mileage_logs.service import MileageLogService
 from app.modules.ownerships.service import OwnershipService
 from app.modules.service_records.models import ServiceRecord
 from app.modules.service_records.repository import ServiceRecordRepository
@@ -6,7 +7,11 @@ from app.modules.service_records.schemas import (
     ServiceRecordCreate,
     ServiceRecordUpdate,
 )
-from app.shared.exceptions import ForbiddenException, NotFoundException
+from app.shared.exceptions import (
+    ForbiddenException,
+    NotFoundException,
+    ValidationException,
+)
 from app.shared.pagination import PageParams
 
 
@@ -17,10 +22,12 @@ class ServiceRecordService:
         repository: ServiceRecordRepository,
         garage_repository: GarageRepository,
         ownership_service: OwnershipService,
+        mileage_log_service: MileageLogService,
     ):
         self.repository = repository
         self.garage_repository = garage_repository
         self.ownership_service = ownership_service
+        self.mileage_log_service = mileage_log_service
 
     async def create(
         self,
@@ -38,13 +45,26 @@ class ServiceRecordService:
         if data.garage_id is not None:
             await self._ensure_garage_exists(data.garage_id)
 
+        if data.odometer_reading is not None:
+            await self.mileage_log_service.validate_reading(
+                vehicle_id,
+                data.service_date,
+                data.odometer_reading,
+            )
+
         record = ServiceRecord(
             vehicle_id=vehicle_id,
             created_by_id=user_id,
             **data.model_dump(),
         )
 
-        return await self.repository.create(record)
+        record = await self.repository.create(record)
+
+        # The odometer reading also lands in the mileage log, so it's
+        # never typed twice.
+        await self.mileage_log_service.sync_service_record(record)
+
+        return record
 
     async def get(self, record_id: int, user_id: int) -> ServiceRecord:
         """A record the user may read: the current owner sees all of them,
@@ -122,16 +142,37 @@ class ServiceRecordService:
         if updates.get("garage_id") is not None:
             await self._ensure_garage_exists(updates["garage_id"])
 
+        for field in ("service_date", "description"):
+            if field in updates and updates[field] is None:
+                raise ValidationException(f"{field} cannot be empty")
+
+        odometer = updates.get("odometer_reading", record.odometer_reading)
+
+        if odometer is not None:
+            await self.mileage_log_service.validate_reading(
+                record.vehicle_id,
+                updates.get("service_date") or record.service_date,
+                odometer,
+                service_record_id=record.id,
+            )
+
         for field, value in updates.items():
             setattr(record, field, value)
 
-        return await self.repository.save(record)
+        record = await self.repository.save(record)
+
+        await self.mileage_log_service.sync_service_record(record)
+
+        return record
 
     async def delete(self, record_id: int, user_id: int) -> None:
 
         record = await self.get_editable(record_id, user_id)
 
+        # Its mileage reading goes with it (ON DELETE CASCADE).
         await self.repository.delete(record)
+
+        await self.mileage_log_service.refresh_current_mileage(record.vehicle_id)
 
     async def _ensure_garage_exists(self, garage_id: int) -> None:
 

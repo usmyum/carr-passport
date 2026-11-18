@@ -75,7 +75,10 @@ class BaseRepository(Generic[ModelType]):
         if filters:
             query = query.where(*filters)
 
-        if order_by is not None:
+        # One column, or a tuple of them for tie-breaks.
+        if isinstance(order_by, tuple):
+            query = query.order_by(*order_by)
+        elif order_by is not None:
             query = query.order_by(order_by)
 
         if offset is not None:

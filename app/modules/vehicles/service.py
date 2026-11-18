@@ -1,3 +1,6 @@
+from app.db.base import utc_now
+from app.modules.mileage_logs.models import MileageLog
+from app.modules.mileage_logs.service import MileageLogService
 from app.modules.ownerships.models import VehicleOwnership
 from app.modules.ownerships.service import OwnershipService, VehicleAccess
 from app.modules.vehicle_models.repository import VehicleModelRepository
@@ -22,10 +25,12 @@ class VehicleService:
         repository: VehicleRepository,
         model_repository: VehicleModelRepository,
         ownership_service: OwnershipService,
+        mileage_log_service: MileageLogService,
     ):
         self.repository = repository
         self.model_repository = model_repository
         self.ownership_service = ownership_service
+        self.mileage_log_service = mileage_log_service
 
     async def create(
         self,
@@ -37,10 +42,22 @@ class VehicleService:
 
         await self._ensure_vin_is_free(data.vin)
 
-        # Saved together with its first ownership period, in one commit.
+        # Saved together with its first ownership period (and first
+        # odometer reading, if given), in one commit.
         vehicle = Vehicle(
             **data.model_dump(),
             ownerships=[VehicleOwnership(user_id=owner_id)],
+            mileage_logs=(
+                [
+                    MileageLog(
+                        created_by_id=owner_id,
+                        recorded_on=utc_now().date(),
+                        odometer=data.current_mileage,
+                    )
+                ]
+                if data.current_mileage is not None
+                else []
+            ),
         )
 
         vehicle = await self.repository.create(vehicle)
@@ -108,6 +125,18 @@ class VehicleService:
             await self._ensure_vin_is_free(
                 updates["vin"],
                 exclude_id=vehicle.id,
+            )
+
+        # Mileage isn't a plain field: a new value is logged as today's
+        # reading, which then sets `current_mileage`.
+        mileage = updates.pop("current_mileage", None)
+
+        if mileage is not None and mileage != vehicle.current_mileage:
+            await self.mileage_log_service.add_reading(
+                vehicle_id,
+                utc_now().date(),
+                mileage,
+                user_id,
             )
 
         for field, value in updates.items():

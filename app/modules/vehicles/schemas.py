@@ -75,6 +75,7 @@ class VehicleUpdate(BaseModel):
     current_mileage: int | None = Field(
         default=None,
         ge=0,
+        description="Logged as today's odometer reading. Can't go down.",
     )
 
     @field_validator("vin", "registration_number", mode="before")

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
+    from app.modules.mileage_logs.models import MileageLog
     from app.modules.ownerships.models import VehicleOwnership
     from app.modules.vehicle_models.models import VehicleModel
 
@@ -52,6 +53,7 @@ class Vehicle(Base, TimestampMixin):
         index=True,
     )
 
+    # The latest mileage log reading — kept in sync by `MileageLogService`.
     current_mileage: Mapped[int | None] = mapped_column(
         Integer,
         nullable=True,
@@ -68,6 +70,13 @@ class Vehicle(Base, TimestampMixin):
     # is lazy-loaded (which would raise under an async session).
     ownerships: Mapped[list["VehicleOwnership"]] = relationship(
         "VehicleOwnership",
+        passive_deletes=True,
+        lazy="raise",
+    )
+
+    # Mapped only so the first odometer reading is saved with a new vehicle.
+    mileage_logs: Mapped[list["MileageLog"]] = relationship(
+        "MileageLog",
         passive_deletes=True,
         lazy="raise",
     )

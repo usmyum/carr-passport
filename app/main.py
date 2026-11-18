@@ -4,6 +4,7 @@ from app.core.config import settings
 from app.core.logging import configure_logging, register_request_logging
 from app.modules.garages.router import router as garages_router
 from app.modules.makes.router import router as makes_router
+from app.modules.mileage_logs.router import router as mileage_logs_router
 from app.modules.ownerships.router import router as ownerships_router
 from app.modules.receipts.router import router as receipts_router
 from app.modules.service_records.router import router as service_records_router
@@ -41,6 +42,7 @@ for router in (
     garages_router,
     service_records_router,
     receipts_router,
+    mileage_logs_router,
 ):
     app.include_router(
         router,

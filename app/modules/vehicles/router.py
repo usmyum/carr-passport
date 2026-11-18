@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.database import get_db
+from app.modules.mileage_logs.dependencies import get_mileage_log_service
+from app.modules.mileage_logs.service import MileageLogService
 from app.modules.ownerships.dependencies import get_ownership_service
 from app.modules.ownerships.service import OwnershipService
 from app.modules.users.dependencies import CurrentUser
@@ -24,12 +26,14 @@ router = APIRouter(
 def get_vehicle_service(
     db: AsyncSession = Depends(get_db),
     ownership_service: OwnershipService = Depends(get_ownership_service),
+    mileage_log_service: MileageLogService = Depends(get_mileage_log_service),
 ) -> VehicleService:
 
     return VehicleService(
         repository=VehicleRepository(db),
         model_repository=VehicleModelRepository(db),
         ownership_service=ownership_service,
+        mileage_log_service=mileage_log_service,
     )
 
 
