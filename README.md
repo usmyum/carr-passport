@@ -15,7 +15,7 @@ understandable architecture over clever abstraction. See
 - **Alembic** for migrations
 - **JWT** auth (access + refresh tokens), **bcrypt** password hashing
 - **MinIO** locally / **S3-compatible** storage in prod, for receipt files
-- **Docker Compose** for local dev (API + Postgres + MinIO)
+- **Docker Compose** for local dev (API + Postgres + MinIO + Mailpit)
 - **pytest** + **httpx** for tests, run against a real Postgres + MinIO — no mocking
 
 ## Architecture
@@ -97,6 +97,11 @@ alice@example.com / password123
 bob@example.com   / password123
 ```
 
+Demo users start unverified. To try transfers, call
+`POST /auth/resend-verification` and open the link from the email in
+**Mailpit** at <http://localhost:8025> — every email the API sends lands
+there, nothing leaves your machine.
+
 Log in via `POST /api/v1/auth/login` in `/docs`, copy the `access_token`,
 click **Authorize**, and every protected endpoint has real data behind it.
 Re-running the script is safe — makes, models, garages and the demo users are
@@ -127,7 +132,7 @@ All routes are prefixed with `/api/v1`. 🔒 = requires `Authorization: Bearer
 
 | Domain | Routes |
 |---|---|
-| **Auth** | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh` |
+| **Auth** | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh` (rotates), `POST /auth/logout`, `POST /auth/verify-email`, 🔒 `POST /auth/resend-verification`, `POST /auth/forgot-password`, `POST /auth/reset-password` |
 | **Users** | 🔒 `GET /users/me` |
 | **Makes** | `POST/GET /makes`, `GET/PUT/DELETE /makes/{id}` — public catalog |
 | **Vehicle models** | `POST /models/make/{make_id}`, `GET /models?make_id=`, `GET/PUT/DELETE /models/{id}` — public catalog |
@@ -138,6 +143,25 @@ All routes are prefixed with `/api/v1`. 🔒 = requires `Authorization: Bearer
 | **Receipts** | 🔒 `POST/GET /receipts/service-record/{id}`, 🔒 `GET /receipts/{id}/download-url`, 🔒 `DELETE /receipts/{id}` |
 
 `GET /health` (no prefix) is a plain liveness probe.
+
+### Accounts & sessions
+
+- **Email verification:** sign-up sends a link. Unverified accounts work
+  normally except for ownership transfers, which are addressed by email.
+- **Password reset:** `forgot-password` always answers 202 (it never reveals
+  which emails have accounts); the link works once, for 60 minutes, and
+  using it logs out every existing session.
+- **Refresh-token rotation:** each `/auth/refresh` uses up the refresh token
+  and returns a new pair. Replaying a used one means it was copied, so that
+  whole login is revoked. Access tokens are short-lived and never looked up.
+- Emailed tokens and refresh tokens are stored as hashes / IDs, never in a
+  form that could be replayed from a database leak.
+- **Rate limits** (per IP) on register, login, refresh, verification and
+  password-reset endpoints → `429 rate_limited`. In-memory: fine for one API
+  process; several processes would need Redis behind `app/shared/rate_limit.py`.
+- **Logging:** one line per request with method, path, status and duration.
+  Every response has an `X-Request-ID` header, and every log line carries it.
+  Readable text locally, JSON lines elsewhere (`APP_ENV` ≠ `local`).
 
 ### Ownership: the history belongs to the car
 
@@ -165,13 +189,14 @@ VIN-based vehicles whose history transfers between owners, garages, service reco
 through the storage abstraction, and a demo-data seed script. Receipt uploads
 are checked against a content-type allowlist and the configured size limit;
 presigned download URLs work from a browser, not just inside the Docker
-network (`S3_PUBLIC_ENDPOINT_URL`). 67 tests, all green.
+network (`S3_PUBLIC_ENDPOINT_URL`). Email verification, password reset,
+refresh-token rotation, rate limiting and structured logging. 84 tests, all
+green.
 
 **Not built yet:**
-- Password reset / email verification
-- Refresh-token rotation or revocation (tokens just expire — no blacklist)
 - A dashboard/aggregation endpoint (e.g. "upcoming service across all your vehicles")
-- Rate limiting, structured logging
+- Mileage logs, service reminders, vehicle documents, shareable history
+- Cleanup job for expired refresh / one-time tokens
 
 See recent commit history / conversation notes for the reasoning behind
 specific architectural choices (ownership via 404 vs 403, CASCADE vs RESTRICT

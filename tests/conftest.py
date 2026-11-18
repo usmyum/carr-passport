@@ -11,6 +11,7 @@ an existing one, create it by hand:
         -c "CREATE DATABASE car_passport_test OWNER car_passport;"
 """
 
+import re
 from collections.abc import AsyncGenerator
 
 import pytest
@@ -26,6 +27,8 @@ from app.db import models  # noqa: F401  — registers every table on Base
 from app.db.base import Base
 from app.db.database import get_db
 from app.main import app
+from app.shared.email import Email, EmailSender, get_email_sender
+from app.shared.rate_limit import reset_rate_limits
 
 TEST_DATABASE_URL = (
         settings.test_database_url
@@ -67,14 +70,47 @@ async def db(engine) -> AsyncGenerator[AsyncSession]:
         yield session
 
 
+class Outbox(EmailSender):
+    """Stands in for SMTP: keeps every email so tests can read the links."""
+
+    def __init__(self):
+        self.sent: list[Email] = []
+
+    async def send(self, email: Email) -> None:
+        self.sent.append(email)
+
+    def latest_token(self, to: str) -> str:
+        """The `?token=` from the newest email sent to `to`."""
+
+        email = next(e for e in reversed(self.sent) if e.to == to)
+
+        return re.search(r"token=([\w-]+)", email.body).group(1)
+
+
 @pytest.fixture
-async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient]:
+def outbox() -> Outbox:
+    return Outbox()
+
+
+@pytest.fixture(autouse=True)
+def fresh_rate_limits():
+    """Every test starts with clean counters — all requests share one IP."""
+
+    reset_rate_limits()
+
+
+@pytest.fixture
+async def client(
+        db: AsyncSession,
+        outbox: Outbox,
+) -> AsyncGenerator[AsyncClient]:
     """An HTTP client wired to the app, sharing the test's session."""
 
     async def override_get_db() -> AsyncGenerator[AsyncSession]:
         yield db
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_email_sender] = lambda: outbox
 
     async with AsyncClient(
             transport=ASGITransport(app=app),
@@ -120,19 +156,35 @@ async def garage(client: AsyncClient) -> dict:
     return response.json()
 
 
-@pytest.fixture
-async def user(client: AsyncClient) -> dict:
-    """A registered user with tokens, for tests that need auth."""
+async def register_verified(
+        client: AsyncClient,
+        outbox: Outbox,
+        email: str,
+) -> dict:
+    """Sign up and click the verification link, like a real user would."""
 
     response = await client.post(
         "/api/v1/auth/register",
         json={
-            "email": "owner@example.com",
+            "email": email,
             "password": "supersecret",
         },
     )
 
+    verified = await client.post(
+        "/api/v1/auth/verify-email",
+        json={"token": outbox.latest_token(email)},
+    )
+    assert verified.status_code == 200
+
     return response.json()
+
+
+@pytest.fixture
+async def user(client: AsyncClient, outbox: Outbox) -> dict:
+    """A registered, verified user with tokens, for tests that need auth."""
+
+    return await register_verified(client, outbox, "owner@example.com")
 
 
 @pytest.fixture
@@ -141,18 +193,12 @@ def auth_headers(user: dict) -> dict:
 
 
 @pytest.fixture
-async def other_headers(client: AsyncClient) -> dict:
-    """Auth headers for a second user — a buyer, or a stranger."""
+async def other_headers(client: AsyncClient, outbox: Outbox) -> dict:
+    """Auth headers for a second verified user — a buyer, or a stranger."""
 
-    response = await client.post(
-        "/api/v1/auth/register",
-        json={
-            "email": "other@example.com",
-            "password": "supersecret",
-        },
-    )
+    tokens = await register_verified(client, outbox, "other@example.com")
 
-    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+    return {"Authorization": f"Bearer {tokens['access_token']}"}
 
 
 @pytest.fixture

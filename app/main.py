@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.core.config import settings
+from app.core.logging import configure_logging, register_request_logging
 from app.modules.garages.router import router as garages_router
 from app.modules.makes.router import router as makes_router
 from app.modules.ownerships.router import router as ownerships_router
@@ -24,7 +25,10 @@ app = FastAPI(
 )
 
 
+configure_logging()
+
 register_exception_handlers(app)
+register_request_logging(app)
 
 
 for router in (

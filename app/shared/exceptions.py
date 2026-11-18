@@ -54,6 +54,12 @@ class ForbiddenException(AppException):
     error_code = "forbidden"
 
 
+class TooManyRequestsException(AppException):
+    status_code = status.HTTP_429_TOO_MANY_REQUESTS
+    default_detail = "Too many requests. Try again later."
+    error_code = "rate_limited"
+
+
 class StorageException(AppException):
     status_code = status.HTTP_502_BAD_GATEWAY
     default_detail = "File storage is unavailable"

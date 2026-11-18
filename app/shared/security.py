@@ -5,6 +5,8 @@ imported by anything. The `current_user` dependency that *does* know about
 users lives in the auth module.
 """
 
+import hashlib
+import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
@@ -99,15 +101,39 @@ def create_access_token(
 
 def create_refresh_token(
     subject: str | int,
+    token_id: str,
+    family_id: str,
 ) -> str:
+    """`jti` names this exact token, so it can be used once and then
+    revoked; `fam` ties together every token rotated from the same login."""
 
     return _create_token(
         subject=subject,
         token_type="refresh",
-        expires_delta=timedelta(
-            days=settings.refresh_token_expire_days
-        ),
+        expires_delta=refresh_token_lifetime(),
+        extra_claims={"jti": token_id, "fam": family_id},
     )
+
+
+def refresh_token_lifetime() -> timedelta:
+    return timedelta(days=settings.refresh_token_expire_days)
+
+
+def generate_one_time_token() -> str:
+    """A random token for emailed links (verify email, reset password)."""
+
+    return secrets.token_urlsafe(32)
+
+
+def hash_one_time_token(token: str) -> str:
+    """Only this hash is stored, never the token itself — like a password,
+    a leaked database row can't be turned back into a working link.
+
+    SHA-256 rather than bcrypt: the token is 256 random bits, so there's
+    nothing to brute-force and a fast hash is enough.
+    """
+
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def decode_token(

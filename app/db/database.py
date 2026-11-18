@@ -10,7 +10,8 @@ from app.core.config import settings
 
 engine = create_async_engine(
     settings.database_url,
-    echo=settings.app_env == "local",
+    # SQL logging is switched on in app/core/logging.py instead of `echo=`,
+    # which would add its own handler and print every statement twice.
     pool_pre_ping=True,
 )
 

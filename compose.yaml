@@ -16,6 +16,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      mailpit:
+        condition: service_started
 
   postgres:
     image: postgres:17
@@ -66,6 +68,15 @@ services:
       mc mb --ignore-existing local/car-passport &&
       echo 'bucket ready'
       "
+
+  # Fake SMTP server: catches every email the API sends, nothing leaves your
+  # machine. Inbox UI at http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: car-passport-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
 volumes:
   postgres_data:

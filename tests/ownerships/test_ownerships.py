@@ -356,3 +356,30 @@ async def test_registering_an_owned_vin_points_to_a_transfer(
 
     assert response.status_code == 409
     assert "transfer" in response.json()["error"]["message"]
+
+
+async def test_unverified_buyer_cannot_accept(
+        client: AsyncClient,
+        vehicle: dict,
+        auth_headers: dict,
+):
+    """Transfers go to an email address, so the buyer has to prove they
+    own it — otherwise anyone could sign up with it and take the car."""
+
+    offer = await client.post(
+        f"/api/v1/transfers/vehicle/{vehicle['id']}",
+        json={"to_email": "unverified@example.com"},
+        headers=auth_headers,
+    )
+
+    signup = await client.post(
+        "/api/v1/auth/register",
+        json={"email": "unverified@example.com", "password": "supersecret"},
+    )
+
+    accept = await client.post(
+        f"/api/v1/transfers/{offer.json()['id']}/accept",
+        headers={"Authorization": f"Bearer {signup.json()['access_token']}"},
+    )
+
+    assert accept.status_code == 403

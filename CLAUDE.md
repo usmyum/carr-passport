@@ -52,6 +52,8 @@ they never re-check for `None`. This is why routers are 3 lines each.
 | `security.py` | Password hashing (bcrypt) + JWT encode/decode. Model-free by design. |
 | `storage.py` | `Storage` ABC + `S3Storage`. All uploads go through `get_storage()`. |
 | `slug.py` | `generate_slug()` |
+| `email.py` | `EmailSender` ABC + `SmtpEmailSender`. All email goes through `get_email_sender()`. |
+| `rate_limit.py` | `rate_limit(scope, max, window)` dependency → `TooManyRequestsException` (429). |
 
 ### Error response shape
 Every error, from any endpoint, comes back as:

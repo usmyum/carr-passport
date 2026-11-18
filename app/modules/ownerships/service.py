@@ -107,6 +107,8 @@ class OwnershipService:
 
         await self.require_access(vehicle_id, user.id, write=True)
 
+        self._ensure_verified(user)
+
         to_email = data.to_email.strip().lower()
 
         if to_email == user.email:
@@ -149,6 +151,10 @@ class OwnershipService:
     ) -> OwnershipTransfer:
 
         transfer = await self._get_incoming(transfer_id, user)
+
+        # Transfers are addressed by email, so the buyer must prove they own
+        # it — otherwise anyone could sign up with that address and accept.
+        self._ensure_verified(user)
 
         current = await self.repository.get_current(transfer.vehicle_id)
 
@@ -222,6 +228,14 @@ class OwnershipService:
         self._ensure_pending(transfer)
 
         return transfer
+
+    @staticmethod
+    def _ensure_verified(user: User) -> None:
+
+        if not user.is_email_verified:
+            raise ForbiddenException(
+                "Verify your email address before transferring a vehicle"
+            )
 
     @staticmethod
     def _ensure_pending(transfer: OwnershipTransfer) -> None:

@@ -34,6 +34,23 @@ class Settings(BaseSettings):
     # Uploads
     max_upload_size_mb: int = 10
 
+    # Email (Mailpit locally — see http://localhost:8025 — any SMTP provider
+    # in production: SES, SendGrid, Resend, Postmark all speak SMTP)
+    smtp_host: str = "localhost"
+    smtp_port: int = 1025
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = False
+    email_from: str = "Car Passport <no-reply@carpassport.local>"
+
+    # Where links in emails point (the web/mobile app that will call the
+    # API's /auth/verify-email and /auth/reset-password).
+    frontend_url: str = "http://localhost:3000"
+
+    # One-time links
+    email_verification_expire_hours: int = 24
+    password_reset_expire_minutes: int = 60
+
     @property
     def max_upload_size_bytes(self) -> int:
         return self.max_upload_size_mb * 1024 * 1024
