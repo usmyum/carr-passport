@@ -22,6 +22,9 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+# `models` looks unused, but importing it registers every module's tables on
+# Base.metadata — without it, autogenerate thinks every table was dropped.
+from app.db import models  # noqa: E402, F401
 from app.db.base import Base  # noqa: E402
 
 target_metadata = Base.metadata
