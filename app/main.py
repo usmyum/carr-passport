@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.core.config import settings
 from app.core.logging import configure_logging, register_request_logging
+from app.modules.dashboard.router import router as dashboard_router
 from app.modules.documents.router import router as documents_router
 from app.modules.garages.router import router as garages_router
 from app.modules.makes.router import router as makes_router
@@ -47,6 +48,7 @@ for router in (
     mileage_logs_router,
     documents_router,
     reminders_router,
+    dashboard_router,
 ):
     app.include_router(
         router,
