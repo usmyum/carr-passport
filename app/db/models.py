@@ -13,6 +13,7 @@ from app.modules.ownerships.models import OwnershipTransfer, VehicleOwnership
 from app.modules.receipts.models import Receipt
 from app.modules.reminders.models import Reminder
 from app.modules.service_records.models import ServiceRecord
+from app.modules.shares.models import VehicleShare
 from app.modules.users.models import OneTimeToken, RefreshToken, User
 from app.modules.vehicle_models.models import VehicleModel
 from app.modules.vehicles.models import Vehicle
@@ -32,4 +33,5 @@ __all__ = [
     "Vehicle",
     "VehicleDocument",
     "VehicleOwnership",
+    "VehicleShare",
 ]

@@ -50,9 +50,10 @@ they never re-check for `None`. This is why routers are 3 lines each.
 | `repository.py` | `BaseRepository[T]` — `create` / `save` / `get_by_id` / `list` / `count` / `find_one` / `delete` |
 | `pagination.py` | `PageParams`, `Page[T]`, `get_page_params` dependency |
 | `security.py` | Password hashing (bcrypt) + JWT encode/decode. Model-free by design. |
-| `storage.py` | `Storage` ABC + `S3Storage`. All uploads go through `get_storage()`. |
+| `storage.py` | `Storage` ABC + `S3Storage`. All uploads go through `get_storage()`; `ensure_upload_allowed()` checks type and size. |
 | `slug.py` | `generate_slug()` |
 | `email.py` | `EmailSender` ABC + `SmtpEmailSender`. All email goes through `get_email_sender()`. |
+| `due.py` | `due_status()` → `overdue` / `due_soon` / `ok`. Used by documents, reminders, dashboard. |
 | `rate_limit.py` | `rate_limit(scope, max, window)` dependency → `TooManyRequestsException` (429). |
 
 ### Error response shape

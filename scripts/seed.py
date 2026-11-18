@@ -17,6 +17,7 @@ so re-run whenever you want more of those to look at.
 import asyncio
 import os
 import random
+from datetime import date
 from decimal import Decimal
 
 import httpx
@@ -146,7 +147,8 @@ async def create_vehicle(
             "year": random.randint(2012, 2025),
             "vin": fake.unique.vin(),
             "registration_number": fake.unique.license_plate(),
-            "current_mileage": random.randint(5_000, 150_000),
+            # No current_mileage: the service records' odometer readings
+            # set it (it's always the latest reading).
         },
         headers=headers,
     )
@@ -160,14 +162,13 @@ async def create_service_record(
         headers: dict,
         vehicle_id: int,
         garage_id: int | None,
+        service_date: date,
+        odometer_reading: int,
 ) -> dict:
     payload = {
         "garage_id": garage_id,
-        "service_date": fake.date_between(
-            start_date="-2y",
-            end_date="today",
-        ).isoformat(),
-        "odometer_reading": random.randint(5_000, 150_000),
+        "service_date": service_date.isoformat(),
+        "odometer_reading": odometer_reading,
         "service_type": random.choice(SERVICE_TYPES),
         "description": fake.sentence(),
         "cost": str(Decimal(random.randrange(3000, 90000)) / 100),
@@ -254,7 +255,18 @@ async def seed() -> None:
                 vehicle = await create_vehicle(client, headers, model["id"])
                 vehicle_count += 1
 
-                for _ in range(random.randint(*RECORDS_PER_VEHICLE)):
+                # The API rejects an odometer that goes backwards, so the
+                # history is generated in date order with rising mileage.
+                record_total = random.randint(*RECORDS_PER_VEHICLE)
+                service_dates = sorted(
+                    fake.date_between(start_date="-2y", end_date="today")
+                    for _ in range(record_total)
+                )
+                odometer = random.randint(5_000, 120_000)
+
+                for service_date in service_dates:
+
+                    odometer += random.randint(500, 15_000)
 
                     garage = (
                         random.choice(garages)
@@ -267,6 +279,8 @@ async def seed() -> None:
                         headers,
                         vehicle["id"],
                         garage["id"] if garage else None,
+                        service_date,
+                        odometer,
                     )
                     record_count += 1
 

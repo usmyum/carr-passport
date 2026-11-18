@@ -17,6 +17,9 @@ bcrypt
 python-multipart
 boto3
 
+# PDF export of the shareable history
+fpdf2
+
 # Tests
 pytest
 pytest-asyncio

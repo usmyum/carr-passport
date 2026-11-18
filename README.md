@@ -141,6 +141,11 @@ All routes are prefixed with `/api/v1`. 🔒 = requires `Authorization: Bearer
 | **Garages** | `POST/GET /garages`, `GET/PUT/DELETE /garages/{id}` — public directory |
 | **Service records** | 🔒 `POST/GET /service-records/vehicle/{vehicle_id}` (paginated), 🔒 `GET/PUT/DELETE /service-records/{id}` |
 | **Receipts** | 🔒 `POST/GET /receipts/service-record/{id}`, 🔒 `GET /receipts/{id}/download-url`, 🔒 `DELETE /receipts/{id}` |
+| **Mileage logs** | 🔒 `POST/GET /mileage-logs/vehicle/{vehicle_id}` (paginated), 🔒 `DELETE /mileage-logs/{id}` |
+| **Documents** | 🔒 `POST/GET /documents/vehicle/{vehicle_id}` (multipart upload), 🔒 `GET/PUT/DELETE /documents/{id}`, 🔒 `GET /documents/{id}/download-url` |
+| **Reminders** | 🔒 `POST/GET /reminders/vehicle/{vehicle_id}` (`?include_completed=true`), 🔒 `GET/PUT/DELETE /reminders/{id}`, 🔒 `POST /reminders/{id}/complete` |
+| **Dashboard** | 🔒 `GET /dashboard` |
+| **Sharing** | 🔒 `POST/GET /shares/vehicle/{vehicle_id}`, 🔒 `DELETE /shares/{id}` (revoke), `GET /public/history/{token}`, `GET /public/history/{token}/pdf` — public, no login |
 
 `GET /health` (no prefix) is a plain liveness probe.
 
@@ -182,6 +187,32 @@ owner. Who may do what is decided in one place, `OwnershipService`:
 - Past owners get an honest 403 on writes (they already know the car exists);
   strangers always get a 404.
 
+### Owner features
+
+- **Mileage logs:** every odometer reading, by hand or from a service record's
+  odometer field (copied automatically, kept in sync on edit/delete). The
+  vehicle's `current_mileage` is always the latest reading — setting it on
+  the vehicle just logs today's reading. Odometers only go up: a reading that
+  contradicts the history is rejected with a 422.
+- **Documents:** insurance, registration, inspection, warranty, other — a file
+  plus optional issue/expiry dates and an `expiry_status`. Private to the
+  uploader: they carry the owner's name, so they don't pass to the next owner.
+- **Reminders:** due by date, mileage, or both (whichever comes first), with
+  an optional repeat (`repeat_months` / `repeat_km`). Completing a repeating
+  one schedules the next from the day and mileage it was done. Private to the
+  current owner.
+- **Status everywhere** comes from `app/shared/due.py`: `overdue`, `due_soon`
+  (within 30 days or 1,000 km) or `ok`.
+- **Dashboard:** overdue and due-soon items across all your cars, most urgent
+  first; spend on records you added; last service and mileage per car. For
+  documents, only the newest expiry per kind counts, so a renewed policy
+  doesn't leave last year's showing as expired.
+- **Shareable history:** a read-only link (1–365 days, default 30) showing the
+  vehicle, owner count, full service history with garages and receipt counts,
+  and odometer readings — never anything identifying an owner. Also as a PDF.
+  Links can be revoked, count their views, and stop working when the car is
+  sold. Public endpoints are rate-limited (60/min per IP).
+
 ## Current status
 
 **Built:** the full vehicle catalog (makes → models → vehicles), JWT auth,
@@ -190,13 +221,14 @@ through the storage abstraction, and a demo-data seed script. Receipt uploads
 are checked against a content-type allowlist and the configured size limit;
 presigned download URLs work from a browser, not just inside the Docker
 network (`S3_PUBLIC_ENDPOINT_URL`). Email verification, password reset,
-refresh-token rotation, rate limiting and structured logging. 84 tests, all
-green.
+refresh-token rotation, rate limiting and structured logging. Mileage logs,
+documents, reminders, a dashboard and a shareable history (web + PDF).
+113 tests, all green.
 
 **Not built yet:**
-- A dashboard/aggregation endpoint (e.g. "upcoming service across all your vehicles")
-- Mileage logs, service reminders, vehicle documents, shareable history
+- Email reminders (needs a scheduled job — reminders show on the dashboard for now)
 - Cleanup job for expired refresh / one-time tokens
+- Unicode fonts in the PDF (non-Latin text prints as `?`)
 
 See recent commit history / conversation notes for the reasoning behind
 specific architectural choices (ownership via 404 vs 403, CASCADE vs RESTRICT

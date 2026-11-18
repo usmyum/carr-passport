@@ -96,6 +96,14 @@ class OwnershipService:
     async def has_changed_hands(self, vehicle_id: int) -> bool:
         return await self.repository.count_for_vehicle(vehicle_id) > 1
 
+    async def is_current_owner(self, vehicle_id: int, user_id: int) -> bool:
+        current = await self.repository.get_current(vehicle_id)
+
+        return current is not None and current.user_id == user_id
+
+    async def count_owners(self, vehicle_id: int) -> int:
+        return await self.repository.count_owners(vehicle_id)
+
     # ---- transfers ---------------------------------------------------------
 
     async def start_transfer(

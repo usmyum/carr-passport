@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.modules.ownerships.models import (
     OwnershipTransfer,
@@ -45,6 +45,16 @@ class VehicleOwnershipRepository(BaseRepository[VehicleOwnership]):
 
     async def count_for_vehicle(self, vehicle_id: int) -> int:
         return await self.count(VehicleOwnership.vehicle_id == vehicle_id)
+
+    async def count_owners(self, vehicle_id: int) -> int:
+        """Distinct people — someone who sold and bought back counts once."""
+
+        result = await self.db.execute(
+            select(func.count(func.distinct(VehicleOwnership.user_id)))
+            .where(VehicleOwnership.vehicle_id == vehicle_id)
+        )
+
+        return result.scalar_one()
 
 
 class OwnershipTransferRepository(BaseRepository[OwnershipTransfer]):
